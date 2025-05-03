@@ -1,5 +1,5 @@
 "# BARNEY-FRIENDS" 
 
-update 2
+update 3
 
 now updating from branch
