@@ -27,7 +27,7 @@ $currentPage = 'login.php';
         <button type="submit">Login</button>
         <p class="register-link">
             Don't have an account?
-            <a href="php/signup.php">Register here</a>
+            <a href="signup.php">Register here</a>
         </p>
         <div id="error" class="error-message"></div>
         <div id="success" class="success-message"></div>
