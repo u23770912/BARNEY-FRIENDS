@@ -1,0 +1,129 @@
+/* Basic Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Body Styling */
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f3f0;
+    color: #3e2723;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* Header Styling */
+  .site-header {
+    background-color: transparent;
+    padding: 20px;
+    width: 100%;
+  }
+  
+  .header-title {
+    font-size: 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  /* Main Container - centers content vertically and horizontally */
+  .main-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  /* Form Container Styling */
+  .form-container {
+    width: 300px; /* Adjust as needed */
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .form-container h2 {
+    margin-bottom: 20px;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  form label {
+    text-align: left;
+    font-weight: bold;
+  }
+  
+  form input,
+  form select,
+  form button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Button styling */
+  form button {
+    background-color:  #3e2723;;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  form button:hover {
+    background-color: #000000;
+  }
+  
+  /* Error Message Styling */
+  .error-message {
+    color: red;
+    margin-top: 10px;
+  }
+  
+  /* Footer Styling */
+  .site-footer {
+    background-color: transparent;
+    color: #3e2723;
+    padding: 20px 0;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 40px;
+  }
+
+  .header-links a {
+    color: black;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 18px;
+    transition: color 0.3s ease;
+}
+
+.header-links a:hover {
+    color: #68524e5c;
+}
+
+.header-links a.active {
+    font-weight: bold;
+    background-color: transparent;
+    color: #3e2723;
+} 
+
+body.dark {
+  --bg: #222;
+  --fg: #ddd;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  transition: background 0.3s, color 0.3s;
+}
