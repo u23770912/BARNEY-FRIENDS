@@ -1,7 +1,7 @@
 <template>
   <header class="bg-white border-b border-black px-8 py-4 flex items-center justify-between">
     <!-- Logo -->
-    <div class="text-3xl font-extrabold text-black select-none cursor-default">JStreet</div>
+    <div class="text-3xl font-extrabold text-black select-none cursor-default">CompareIT</div>
 
     <!-- Navigation -->
     <nav class="flex space-x-12 text-black font-semibold">
@@ -60,7 +60,11 @@
 
     <!-- Auth Buttons -->
     <div class="flex space-x-6">
-      <button class="text-black font-semibold hover:text-green-600">Login</button>
+      <!-- <button class="text-black font-semibold hover:text-green-600">Login</button> -->
+      <!-- Login button -->
+      <!-- <router-link to="/login" class="btn-login">Login</router-link> -->
+      <router-link to="/login" class="text-black font-semibold hover:text-green-600">Login</router-link>
+
       <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold">
         Sign Up
       </button>
