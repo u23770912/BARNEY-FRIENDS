@@ -11,7 +11,7 @@
             type="email"
             id="email"
             v-model="email"
-            placeholder="you@example.com"
+            placeholder="tonystark@gmail.com"
             required
           />
         </div>

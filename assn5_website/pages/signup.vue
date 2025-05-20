@@ -1,93 +1,191 @@
 <template>
-  <div>
-    <!-- Header -->
-    <header>
-      <div class="header-links">
-        <router-link to="/login">Login</router-link>
-      </div>
-    </header>
+  <div class="signup-page">
+    <div class="signup-card">
+      <h2 class="card-title">Create your <span class="brand">CompareIT</span> account</h2>
 
-    <!-- Main Content Container -->
-    <div class="main-container">
-      <div class="form-container">
-        <h2>Create an Account</h2>
-        <form @submit.prevent="handleSubmit">
-          <label for="name">Name</label>
-          <input type="text" id="name" v-model="form.name" required />
-
-          <label for="surname">Surname</label>
-          <input type="text" id="surname" v-model="form.surname" required />
-
+      <!-- Dummy signup form – replace submit handler with real API call later -->
+      <form class="signup-form" @submit.prevent="onSubmit">
+        <div class="form-field">
           <label for="email">Email</label>
-          <input type="email" id="email" v-model="form.email" required />
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            placeholder="you@example.com"
+            required
+          />
+        </div>
 
+        <div class="form-field">
           <label for="password">Password</label>
-          <input type="password" id="password" v-model="form.password" required />
+          <input
+            type="password"
+            id="password"
+            v-model="password"
+            placeholder="Create a password"
+            required
+          />
+        </div>
 
-          <label for="user_type">User Type</label>
-          <select id="user_type" v-model="form.user_type" required>
-            <option value="">-- Select User Type --</option>
-            <option value="Customer">Customer</option>
-            <option value="Courier">Courier</option>
-          </select>
+        <div class="form-field">
+          <label for="confirm">Confirm Password</label>
+          <input
+            type="password"
+            id="confirm"
+            v-model="confirm"
+            placeholder="Repeat your password"
+            required
+          />
+        </div>
 
-          <button type="submit">Register</button>
-          <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-          <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
-        </form>
-      </div>
+        <button type="submit" class="btn-submit">Sign&nbsp;Up</button>
+
+        <p class="login-link">
+          Already have an account?
+          <router-link to="/login" class="link">Log in</router-link>
+        </p>
+
+        <!-- feedback messages -->
+        <p v-if="error" class="error">{{ error }}</p>
+        <p v-if="success" class="success">{{ success }}</p>
+      </form>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Signup',
-  data() {
-    return {
-      form: {
-        name: '',
-        surname: '',
-        email: '',
-        password: '',
-        user_type: '',
-      },
-      errorMessage: '',
-      successMessage: '',
-    };
-  },
-  methods: {
-    async handleSubmit() {
-      try {
-        const response = await fetch('path/to/your/api.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'Register',
-            ...this.form,
-          }),
-        });
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-        const data = await response.json();
+const email    = ref('');
+const password = ref('');
+const confirm  = ref('');
+const error    = ref('');
+const success  = ref('');
+const router   = useRouter();
 
-        if (data.error) {
-          this.errorMessage = data.error.message || 'An error occurred.';
-          this.successMessage = '';
-        } else {
-          this.successMessage = 'Registration successful!';
-          this.errorMessage = '';
-        }
-      } catch (error) {
-        this.errorMessage = 'Request failed. Please try again.';
-        this.successMessage = '';
-      }
-    },
-  },
-};
+function onSubmit() {
+  // very basic front-end check for matching passwords
+  if (password.value !== confirm.value) {
+    error.value   = 'Passwords do not match';
+    success.value = '';
+    return;
+  }
+
+  // Dummy success path
+  success.value = 'Signup successful (dummy)';
+  error.value   = '';
+
+  setTimeout(() => {
+    router.push('/login'); // send new user to login page
+  }, 900);
+}
 </script>
 
 <style scoped>
-@import '@/assets/css/signup.css';
+/* ---------- Layout ---------- */
+.signup-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fffaf6 0%, #f6faff 100%);
+  padding: 1rem;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 2.5rem 2.75rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  margin-bottom: 1.75rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.brand {
+  color: #16c925;
+}
+
+/* ---------- Form ---------- */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #d0d6f5;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #3366ff;
+  box-shadow: 0 0 0 2px rgba(51, 102, 255, 0.1);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #16c925;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-submit:hover {
+  background: #264fcc;
+}
+
+/* ---------- Links & Messages ---------- */
+.login-link {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.link {
+  color: #3366ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.error {
+  margin-top: 0.5rem;
+  color: #e63946;
+  font-size: 0.9rem;
+}
+
+.success {
+  margin-top: 0.5rem;
+  color: #2a9d8f;
+  font-size: 0.9rem;
+}
 </style>

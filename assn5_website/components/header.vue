@@ -60,14 +60,18 @@
 
     <!-- Auth Buttons -->
     <div class="flex space-x-6">
-      <!-- <button class="text-black font-semibold hover:text-green-600">Login</button> -->
-      <!-- Login button -->
-      <!-- <router-link to="/login" class="btn-login">Login</router-link> -->
-      <router-link to="/login" class="text-black font-semibold hover:text-green-600">Login</router-link>
+      <!-- Login -->
+      <NuxtLink to="/login" class="text-black font-semibold hover:text-green-600">
+        Login
+      </NuxtLink>
 
-      <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold">
+      <!-- Sign-Up -->
+      <NuxtLink
+        to="/signup"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold"
+      >
         Sign Up
-      </button>
+      </NuxtLink>
     </div>
   </header>
 </template>
