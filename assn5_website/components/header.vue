@@ -1,7 +1,13 @@
 <template>
   <header class="bg-white border-b border-black px-8 py-4 flex items-center justify-between">
     <!-- Logo -->
-    <div class="text-3xl font-extrabold text-black select-none cursor-default">CompareIT</div>
+    <!-- Logo (clickable → index page) -->
+    <NuxtLink
+      to="/"
+      class="text-3xl font-extrabold text-black select-none cursor-pointer hover:text-green-600"
+    >
+      CompareIT
+    </NuxtLink>
 
     <!-- Navigation -->
     <nav class="flex space-x-12 text-black font-semibold">
