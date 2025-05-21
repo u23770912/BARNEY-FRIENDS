@@ -16,7 +16,7 @@ jobs:
       - name: FTP Deploy to Wheatley
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ secrets.FTP_HOST }}
+          server: ${{ SECRETS.FTP_HOST }}
           username: ${{ SECRETS.FTP_USERNAME }}
           password: ${{ SECRETS.FTP_PASSWORD }}
           server-dir: ${{ SECRETS.FTP_TARGET }}
