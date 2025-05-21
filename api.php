@@ -8,8 +8,8 @@ error_reporting(E_ALL);
 
 header("Content-Type: application/json");
 
-include_once "./ASS5/php/config.php";
-include_once "./ASS5/php/user.php";
+include_once "https://wheatley.cs.up.ac.za/u23770912/COS221/ASS5/php/config.php";
+include_once "https://wheatley.cs.up.ac.za/u23770912/COS221/ASS5/php/user.php";
 
 $input = json_decode(file_get_contents("php://input"), true);
 
