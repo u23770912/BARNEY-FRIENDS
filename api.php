@@ -269,7 +269,7 @@ else if ($input['type'] === 'GetWishlist') {
 
 else {
     http_response_code(400);
-    echo json_encode(["status"=> "error","message"=> "Invalid Request Type"]);
+    echo json_encode(["status"=> "error","message"=> "Invalid Request Type..."]);
     exit;
 }
 
