@@ -9,5 +9,10 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ]
+  },
+  runtimeConfig: {
+    public: {
+      apiBase: 'https://wheatley.cs.up.ac.za/u23537036' // or your API base URL
+    }
   }
 })
