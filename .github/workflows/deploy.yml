@@ -16,7 +16,7 @@ jobs:
       - name: FTP Deploy to Wheatley
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ${{ SECRETS.FTP_HOST }}
+          server: wheatley.cs.up.ac.za
           username: ${{ SECRETS.FTP_USERNAME }}
           password: ${{ SECRETS.FTP_PASSWORD }}
           server-dir: ${{ SECRETS.FTP_TARGET }}
