@@ -9,10 +9,10 @@ class Database {
     private static $instance = null;
     private $conn;
     
-    private $host = $_ENV['DB_HOST'];
-    private $dbname = $_ENV['DB_NAME'];
-    private $username = $_ENV['DB_USER']; 
-    private $password = $_ENV['DB_PASS'];
+    private $host = "https://wheatley.cs.up.ac.za/phpmyadmin/";
+    private $dbname = "u23976072_COS221Ass5";
+    private $username = "u23976072"; 
+    private $password = "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC";
 
     private function __construct() {
         try {

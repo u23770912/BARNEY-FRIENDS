@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      const res = await fetch('https://if0_39037186.epizy.com/api.php', {
+      const res = await fetch('https://wheatley.cs.up.ac.za/u23770912/COS221/api.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
