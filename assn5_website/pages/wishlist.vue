@@ -45,7 +45,7 @@
             v-for="(product, index) in wishlist"
             :key="product.product_id || index"
             :image="product.image || 'https://via.placeholder.com/300'"
-            :name="product.name || 'Product Name'"
+            :name="product.name || product.text || 'Product Name'"
             :originalPrice="product.originalPrice || 0"
             :discountedPrice="product.discountedPrice || 0"
             :stores="product.stores || []"
@@ -77,20 +77,20 @@
 <script setup>
 import WishProductCard from '~/components/wishproductcard.vue'
 
-const config = useRuntimeConfig()
 const wishlist = ref([])
 const loading = ref(true)
 const priceAlertsEnabled = ref(true)
 const error = ref(null)
 
-// Credentials - move these to .env in production!
+// API configuration
+const apiUrl = 'https://wheatley.cs.up.ac.za/u23537036/apiB.php'
+const apiCredentials = {
+  userId: 1, // Your user ID in the database
+  apiKey: '6d7f8e9a0b1c2d3e4f5a6b7c8d9e0f1' // Your API key from configTest.php
+}
 const basicAuth = {
   username: 'u23537036',
   password: 'RamJas@*97'
-}
-const apiCredentials = {
-  userId: 1, // Your API user ID
-  apiKey: '6d7f8e9a0b1c2d3e4f5a6b7c8d9e0f1' // Your API key
 }
 
 onMounted(async () => {
@@ -101,102 +101,127 @@ const fetchWishlist = async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('Attempting to fetch wishlist...')
 
-    // First verify the endpoint is reachable
-    try {
-      const reachable = await checkEndpointReachable()
-      if (!reachable) {
-        throw new Error('API endpoint is not reachable')
-      }
-    } catch (reachError) {
-      throw new Error(`Cannot connect to API: ${reachError.message}`)
-    }
+    const authToken = btoa(`${basicAuth.username}:${basicAuth.password}`)
 
-    // Create headers with Basic Auth
-    const headers = new Headers()
-    headers.append('Content-Type', 'application/json')
-    headers.append('Authorization', `Basic ${btoa(`${basicAuth.username}:${basicAuth.password}`)}`)
-
-    const response = await fetch('https://wheatley.cs.up.ac.za/u23537036/apiB.php', {
+    const response = await $fetch(apiUrl, {
       method: 'POST',
-      headers,
-      body: JSON.stringify({
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authToken}`
+      },
+      body: {
         type: 'GetWishlist',
         user_id: apiCredentials.userId,
         apikey: apiCredentials.apiKey
-      }),
-      credentials: 'include' // Important for CORS with credentials
+      }
     })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    
-    if (data.status === 'success') {
-      wishlist.value = data.data.items.map(item => ({
+    if (response.status === 'success') {
+      // Map the API response to your frontend structure
+      wishlist.value = response.data.items.map(item => ({
         product_id: item.product_id,
-        name: item.text || item.name || 'Product Name',
+        name: item.name,
         description: item.description,
-        image: item.image || 'https://via.placeholder.com/300',
-        originalPrice: item.originalPrice || 0,
-        discountedPrice: item.discountedPrice || 0,
-        stores: item.stores || [],
+        // Add default values for missing fields
+        image: 'https://via.placeholder.com/300',
+        originalPrice: 0,
+        discountedPrice: 0,
+        stores: [],
         add_date: item.add_date
       }))
     } else {
-      throw new Error(data.data?.message || 'API returned an error')
+      throw new Error(response.data?.message || 'Failed to load wishlist')
     }
   } catch (err) {
-    console.error('Fetch error:', err)
-    error.value = err.message
-    // Show user-friendly error message
+    console.error('API Error:', err)
+    error.value = err.message || 'Failed to load wishlist'
+    
+    // Fallback to sample data if API fails (remove in production)
+    wishlist.value = [
+      {
+        product_id: 101,
+        name: "Wireless Headphones",
+        description: "Noise-cancelling Bluetooth headphones with 30hr battery life",
+        image: 'https://via.placeholder.com/300',
+        originalPrice: 3000,
+        discountedPrice: 2200,
+        stores: ['Zara', 'Superbalist'],
+        add_date: "2023-05-15 10:30:00"
+      },
+      {
+        product_id: 102,
+        name: "Smart Watch",
+        description: "Fitness tracking and notifications",
+        image: 'https://via.placeholder.com/300',
+        originalPrice: 2300,
+        discountedPrice: 1800,
+        stores: ['CourtOrder', 'Shesha'],
+        add_date: "2023-05-14 14:15:00"
+      }
+    ]
   } finally {
     loading.value = false
   }
 }
 
-const checkEndpointReachable = async () => {
-  try {
-    const response = await fetch('https://wheatley.cs.up.ac.za/u23537036/apiB.php', {
-      method: 'OPTIONS',
-      headers: {
-        'Authorization': `Basic ${btoa(`${basicAuth.username}:${basicAuth.password}`)}`
-      }
-    })
-    return response.ok
-  } catch {
-    return false
-  }
-}
-
-// Add similar error handling to other methods
 const removeFromWishlist = async (productId) => {
   try {
-    const headers = new Headers()
-    headers.append('Content-Type', 'application/json')
-    headers.append('Authorization', `Basic ${btoa(`${basicAuth.username}:${basicAuth.password}`)}`)
+    const authToken = btoa(`${basicAuth.username}:${basicAuth.password}`)
 
-    const response = await fetch('https://wheatley.cs.up.ac.za/u23537036/apiB.php', {
+    const response = await $fetch(apiUrl, {
       method: 'POST',
-      headers,
-      body: JSON.stringify({
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authToken}`
+      },
+      body: {
         type: 'RemoveFromWishlist',
         user_id: apiCredentials.userId,
         product_id: productId,
         apikey: apiCredentials.apiKey
-      }),
-      credentials: 'include'
+      }
     })
 
-    if (!response.ok) throw new Error('Failed to remove item')
-    
-    wishlist.value = wishlist.value.filter(item => item.product_id !== productId)
+    if (response.status === 'success') {
+      wishlist.value = wishlist.value.filter(item => item.product_id !== productId)
+    } else {
+      throw new Error(response.data?.message || 'Failed to remove item')
+    }
   } catch (err) {
     console.error('Remove error:', err)
+    error.value = err.message
+  }
+}
+
+const clearWishlist = async () => {
+  try {
+    const authToken = btoa(`${basicAuth.username}:${basicAuth.password}`)
+    
+    // Create an array of promises for all delete operations
+    const deletePromises = wishlist.value.map(item => 
+      $fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${authToken}`
+        },
+        body: {
+          type: 'RemoveFromWishlist',
+          user_id: apiCredentials.userId,
+          product_id: item.product_id,
+          apikey: apiCredentials.apiKey
+        }
+      })
+    )
+    
+    // Wait for all deletions to complete
+    await Promise.all(deletePromises)
+    
+    // Clear local wishlist
+    wishlist.value = []
+  } catch (err) {
+    console.error('Clear error:', err)
     error.value = err.message
   }
 }
