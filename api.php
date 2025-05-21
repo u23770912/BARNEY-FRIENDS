@@ -8,7 +8,7 @@ error_reporting(E_ALL);
 
 header("Content-Type: application/json");
 
-include_once "COS221/ASS5/php/config.php";
+require_once __DIR__ . '/ASS5/php/config.php'; 
 require_once __DIR__ . '/ASS5/php/user.php'; 
 
 $input = json_decode(file_get_contents("php://input"), true);
@@ -27,7 +27,6 @@ else if ($input['type'] === "Register") {
         $surname   = trim($input['surname'] ?? "");
         $email     = trim($input['email'] ?? "");
         $password  = $input['password'] ?? "";
-        $user_type = trim($input['user_type'] ?? "");
 
         if (empty($name) || empty($surname) || empty($email) || empty($password)) {
             http_response_code(400);
@@ -78,7 +77,6 @@ else if ($input['type'] === "Login") {
                 "data" => [
                     "apikey" => $result['apikey'],
                     "userid" => $result['id'],
-                    "user_type"   => $result['usertype'],
                     "name"   => $result['name']
                 ]
             ]);
