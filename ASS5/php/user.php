@@ -59,7 +59,7 @@ class User {
         }
     
         $sql = "SELECT id, password AS stored_hash, salt, api_key
-                FROM u23770912_users
+                FROM users
                 WHERE email = :email
                 LIMIT 1";
         $stmt = $this->conn->prepare($sql);
