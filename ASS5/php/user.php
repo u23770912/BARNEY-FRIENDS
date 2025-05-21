@@ -6,7 +6,7 @@ class User {
         $this->conn = $dbConnection;
     }
     
-    public function register($name, $surname, $email, $password, $user_type) {
+    public function register($name, $surname, $email, $password) {
         if (!preg_match('/^[^\s@]+@[^\s@]+\.[^\s@]+$/', $email)) {
             return ['status' => 'error', 'message' => 'Invalid email address'];
         }
@@ -15,17 +15,13 @@ class User {
         }
         
         // Check if the email already exists
-        $query = "SELECT id FROM u23770912_users WHERE email = :email";
+        $query = "SELECT id FROM users WHERE email = :email";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
             return ['status' => 'error', 'message' => 'Email already exists'];
         }
-        $validTypes = ['Customer', 'Courier', 'Inventory Manager'];
-            if (!in_array($user_type, $validTypes)) {
-                return ['status' => 'error', 'message' => 'Invalid user type'];
-            }
                     
         // Generate a dynamic salt (ensure salt is longer than 10 characters)
         $salt = bin2hex(random_bytes(16)); // 32 hex characters
@@ -37,15 +33,14 @@ class User {
         $apiKey = bin2hex(random_bytes(8)); // 16 hex characters
         
         // Insert the new user into the database
-        $insertQuery = "INSERT INTO u23770912_users (name, surname, email, password, salt, user_type, api_key) 
-                        VALUES (:name, :surname, :email, :password, :salt, :user_type, :api_key)";
+        $insertQuery = "INSERT INTO users (name, surname, email, password, salt, api_key) 
+                        VALUES (:name, :surname, :email, :password, :salt, :api_key)";
         $insertStmt = $this->conn->prepare($insertQuery);
         $insertStmt->bindParam(':name', $name);
         $insertStmt->bindParam(':surname', $surname);
         $insertStmt->bindParam(':email', $email);
         $insertStmt->bindParam(':password', $hashedPassword);
         $insertStmt->bindParam(':salt', $salt);
-        $insertStmt->bindParam(':user_type', $user_type);
         $insertStmt->bindParam(':api_key', $apiKey);
         
         if ($insertStmt->execute()) {
