@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 header("Content-Type: application/json");
 
 include_once "COS221/ASS5/php/config.php";
-include_once "COS221/ASS5/php/user.php";
+require_once __DIR__ . '/ASS5/php/user.php'; 
 
 $input = json_decode(file_get_contents("php://input"), true);
 
