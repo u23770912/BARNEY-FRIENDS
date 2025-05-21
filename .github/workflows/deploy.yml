@@ -16,7 +16,7 @@ jobs:
       - name: FTP Deploy to Wheatley
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: wheatley.cs.up.ac.za/u23770912/      
+          server: wheatley.cs.up.ac.za     
           username: u23770912               
           password: Drowssap@1    
           server-dir: /u23770912/           
