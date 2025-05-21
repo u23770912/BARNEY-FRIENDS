@@ -23,5 +23,5 @@ jobs:
           exclude: |
             **/.git*
             **/.github*
-            **/README.md
+            **/README.md  
 
