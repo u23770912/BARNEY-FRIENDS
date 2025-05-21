@@ -29,14 +29,14 @@ else if ($input['type'] === "Register") {
         $password  = $input['password'] ?? "";
         $user_type = trim($input['user_type'] ?? "");
 
-        if (empty($name) || empty($surname) || empty($email) || empty($password) || empty($user_type)) {
+        if (empty($name) || empty($surname) || empty($email) || empty($password)) {
             http_response_code(400);
             echo json_encode(["status" => "error", "message" => "Missing required fields"]);
             exit;
         }
 
         $user = new User($db);
-        $result = $user->register($name, $surname, $email, $password, $user_type);
+        $result = $user->register($name, $surname, $email, $password);
 
         if ($result['status'] === "success") {
             echo json_encode([
