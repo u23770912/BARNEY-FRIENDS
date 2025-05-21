@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       console.log('Sending login request…');
     
-      const res = await fetch('../api.php', {
+      const res = await fetch('https://if0_39037186.epizy.com/api.php', {
         method:  'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
