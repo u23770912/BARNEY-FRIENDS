@@ -1,4 +1,4 @@
-name: Deploy to Wheatley FTP
+name: Deploy to Wheatley via FTP
 
 on:
   push:
@@ -10,14 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /u23770912/
+    - name: FTP Deploy to Wheatley
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_HOST }}   
+        username: ${{ secrets.FTP_USERNAME }}  
+        password: ${{ secrets.FTP_PASSWORD }}  
+        server-dir: /u23770912/                
+        exclude: |
+          **/.git*
+          **/.github*
+          **/README.md
+
 
