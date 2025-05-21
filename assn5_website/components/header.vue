@@ -67,7 +67,7 @@
     <!-- Auth Buttons -->
     <div class="flex space-x-6">
       <!-- Login -->
-      <NuxtLink to="/login" class="text-black font-semibold hover:text-green-600">
+      <NuxtLink to="/login" class="text-black font-semibold px-4 py-2 hover:text-green-600">
         Login
       </NuxtLink>
 

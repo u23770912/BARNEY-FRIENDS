@@ -9,8 +9,8 @@
     </section>
 
     <!-- Featured Products -->
-    <section class="px-6 md:px-16 py-12">
-      <h2 class="text-3xl font-bold mb-8 border-l-4 border-green-500 pl-4">Featured Products</h2>
+    <section class="px-6 md:px-16 py-16">
+      <h2 class="text-3xl font-bold mb-10 border-l-4 border-green-500 pl-4">Featured Products</h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
         <ProductCard
@@ -26,10 +26,10 @@
     </section>
 
     <!-- Reviews Section -->
-    <section class="bg-gray-50 px-6 md:px-16 py-12 rounded-t-3xl">
-      <h2 class="text-2xl font-bold mb-6 border-l-4 border-green-500 pl-4">Customer Reviews</h2>
+    <section class="bg-gray-50 px-6 md:px-16 py-16 rounded-t-3xl">
+      <h2 class="text-2xl font-bold mb-8 border-l-4 border-green-500 pl-4">Customer Reviews</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-12">
         <ReviewCard
           v-for="(review, index) in reviews"
           :key="index"
@@ -37,6 +37,15 @@
           :rating="review.rating"
           :comment="review.comment"
         />
+      </div>
+
+      <!-- CTA to Dashboard -->
+      <div class="text-center">
+        <NuxtLink to="/dashboard">
+          <button class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300">
+          View Dashboard Analytics
+          </button>
+        </NuxtLink>
       </div>
     </section>
   </div>
@@ -61,7 +70,7 @@ const products = [
     discountedPrice: 1800,
     stores: ['CourtOrder', 'Shesha']
   },
-  // Add more sample products here
+  // More sample products can be added
 ]
 
 const reviews = [
@@ -80,6 +89,6 @@ const reviews = [
     rating: 3,
     comment: 'Product was okay, but shipping took a while and packaging was a bit damaged.'
   },
-  // Add more sample reviews if needed
+  // More sample reviews can be added
 ]
 </script>
