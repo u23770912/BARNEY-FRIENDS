@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       console.log('Sending login request…');
     
-      const res = await fetch('https://wheatley.cs.up.ac.za/u23770912/api.php', {
+      const res = await fetch('../api.php', {
         method:  'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({

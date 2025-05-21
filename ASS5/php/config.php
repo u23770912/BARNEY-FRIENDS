@@ -1,17 +1,27 @@
 <?php
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../');
+$dotenv->load();
 
 class Database {
     private static $instance = null;
     private $conn;
-    private $host = 'wheatley.cs.up.ac.za';
-    private $dbname = 'u23770912';
-    private $username = 'u23770912';
-    private $password = 'UGJ5F5F5KPEZ7E455QF6JWBZVTPWR73K';
+
+    private $host;
+    private $dbname;
+    private $username;
+    private $password;
 
     private function __construct() {
+        $this->host = $_ENV['DB_HOST'];
+        $this->dbname = $_ENV['DB_NAME'];
+        $this->username = $_ENV['DB_USER'];
+        $this->password = $_ENV['DB_PASS'];
+
         try {
-            $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}", 
-                                  $this->username, 
+            $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}",
+                                  $this->username,
                                   $this->password);
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
