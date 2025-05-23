@@ -14,12 +14,18 @@ class Database {
 
     private static $instance = null;
     private $conn;
-    private $host = 'wheatley.cs.up.ac.za';
-    private $dbname = 'u23770912';
-    private $username = 'u23770912';
-    private $password = 'UGJ5F5F5KPEZ7E455QF6JWBZVTPWR73K';
+    private $host;
+    private $dbname;
+    private $username;
+    private $password;
+
 
     private function __construct() {
+        $this->host     = getenv('DB_HOST');
+        $this->dbname   = getenv('DB_NAME');
+        $this->username = getenv('DB_USER');
+        $this->password = getenv('DB_PASS');
+
         try {
             $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}", 
                                   $this->username, 
