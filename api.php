@@ -10,6 +10,7 @@ header("Content-Type: application/json");
 
 include_once "COS216/ASS5/php/config.php";
 include_once "COS216/ASS5/php/user.php";
+include_once "COS216/ASS5/php/review.php";
 
 $input = json_decode(file_get_contents("php://input"), true);
 
