@@ -9,7 +9,8 @@ class Database {
     private static $instance = null;
     private $conn;
     
-    private $host = "https://wheatley.cs.up.ac.za/phpmyadmin/";
+    // Fixed: host should be the server hostname, not the phpMyAdmin URL
+    private $host = "wheatley.cs.up.ac.za"; // or "wheatley.cs.up.ac.za" if connecting remotely
     private $dbname = "u23976072_COS221Ass5";
     private $username = "u23976072"; 
     private $password = "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC";
@@ -39,3 +40,15 @@ class Database {
     }
 }
 
+// Initialize a mysqli connection for compatibility with existing code
+$database = Database::getInstance();
+$pdo = $database->getConnection();
+
+// Create mysqli connection for backward compatibility
+$db = new mysqli("wheatley.cs.up.ac.za", "u23976072", "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC", "u23976072_COS221Ass5");
+
+if ($db->connect_error) {
+    die("Connection failed: " . $db->connect_error);
+}
+
+?>
