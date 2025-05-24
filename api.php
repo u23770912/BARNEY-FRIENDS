@@ -1,14 +1,14 @@
 
 <?php
 session_start();
-error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
-ini_set('display_errors', 1);
+//error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+//ini_set('display_errors', 1);
 //ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 
 header("Content-Type: application/json");
 
-require_once __DIR__ . '/ASS5/php/config.php'; 
+require_once __DIR__ . '/ASS5/php/config.php';
 require_once __DIR__ . '/ASS5/php/user.php'; 
 
 $input = json_decode(file_get_contents("php://input"), true);
