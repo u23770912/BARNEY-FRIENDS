@@ -106,7 +106,7 @@ else if ($input['type'] === 'AddToWishlist') {
         }
         
         // Verify API key - Using PDO
-        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $stmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
         $stmt->execute([$input['user_id'], $input['apikey']]);
         if ($stmt->rowCount() === 0) {
             throw new Exception("Invalid API key or user ID", 401);
@@ -156,7 +156,7 @@ else if ($input['type'] === 'RemoveFromWishlist') {
         }
         
         // Verify API key - Using PDO
-        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $stmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
         $stmt->execute([$input['user_id'], $input['apikey']]);
         if ($stmt->rowCount() === 0) {
             throw new Exception("Invalid API key or user ID", 401);
@@ -200,7 +200,7 @@ else if ($input['type'] === 'GetWishlist') {
         error_log("[GetWishlist] Fields validated");
 
         // Verify API key - Using PDO
-        $authStmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $authStmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
         $authStmt->execute([$input['user_id'], $input['apikey']]);
         
         if ($authStmt->rowCount() === 0) {
