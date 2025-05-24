@@ -1,12 +1,6 @@
 <?php
-// config.php at C:\Users\socce\Documents\COS221\ASS5\ASS5\php\config.php
-
-// 1) Load Composer’s autoloader from C:\Users\socce\Documents\COS221\ASS5\vendor\autoload.php
 require_once __DIR__ . '/../../vendor/autoload.php';
-
 use Dotenv\Dotenv;
-
-// 2) Tell phpdotenv to load the .env from C:\Users\socce\Documents\COS221\ASS5\.env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
 
