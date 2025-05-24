@@ -8,7 +8,8 @@ ini_set('display_errors', 1);
 header("Content-Type: application/json");
 
 require_once __DIR__ . '/ASS5/php/config.php';
-require_once __DIR__ . '/ASS5/php/user.php'; 
+require_once __DIR__ . '/ASS5/php/user.php';
+require_once __DIR__ . '/ASS5/php/review.php';
 
 // Initialize database connection using PDO
 $database = Database::getInstance();
