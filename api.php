@@ -1,7 +1,6 @@
-
 <?php
 session_start();
-error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+//error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 ini_set('display_errors', 1);
 //ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -10,6 +9,10 @@ header("Content-Type: application/json");
 
 require_once __DIR__ . '/ASS5/php/config.php';
 require_once __DIR__ . '/ASS5/php/user.php'; 
+
+// Initialize database connection using PDO
+$database = Database::getInstance();
+$db = $database->getConnection();
 
 $input = json_decode(file_get_contents("php://input"), true);
 
@@ -92,187 +95,167 @@ else if ($input['type'] === "Login") {
     }
 }
 
-
-// else if ($input['type'] === 'AddToWishlist') {
-//     try {
-//         $required = ['user_id', 'product_id', 'apikey'];
-//         foreach ($required as $field) {
-//             if (empty($input[$field])) {
-//                 throw new Exception("Missing field: $field", 400);
-//             }
-//         }
+else if ($input['type'] === 'AddToWishlist') {
+    try {
+        // ===== Add to Wishlist =====
+        $required = ['user_id', 'product_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
         
-//         // Verify API key
-//         $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
-//         $stmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':api_key' => $input['apikey']
-//         ]);
+        // Verify API key - Using PDO
+        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $stmt->execute([$input['user_id'], $input['apikey']]);
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Invalid API key or user ID", 401);
+        }
         
-//         if ($stmt->rowCount() === 0) {
-//             throw new Exception("Invalid API key or user ID", 401);
-//         }
+        // Check if product exists - Using PDO
+        $productCheck = $db->prepare("SELECT product_id FROM product WHERE product_id = ?");
+        $productCheck->execute([$input['product_id']]);
+        if ($productCheck->rowCount() === 0) {
+            throw new Exception("Product not found", 404);
+        }
         
-//         // Check if product exists
-//         $productCheck = $db->prepare("SELECT product_id FROM u23770912_products WHERE product_id = :product_id");
-//         $productCheck->execute([':product_id' => $input['product_id']]);
+        // Check if already in wishlist - Using PDO
+        $checkStmt = $db->prepare("SELECT product_id FROM wishlist WHERE user_id = ? AND product_id = ?");
+        $checkStmt->execute([$input['user_id'], $input['product_id']]);
+        if ($checkStmt->rowCount() > 0) {
+            throw new Exception("Product already in wishlist", 409);
+        }
         
-//         if ($productCheck->rowCount() === 0) {
-//             throw new Exception("Product not found", 404);
-//         }
+        // Add to wishlist - Using PDO
+        $insertStmt = $db->prepare("INSERT INTO wishlist (user_id, product_id, add_date) VALUES (?, ?, NOW())");
+        $insertStmt->execute([$input['user_id'], $input['product_id']]);
         
-//         // Check if already in wishlist
-//         $checkStmt = $db->prepare("SELECT product_id FROM u23770912_wishlist WHERE user_id = :user_id AND product_id = :product_id");
-//         $checkStmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':product_id' => $input['product_id']
-//         ]);
-        
-//         if ($checkStmt->rowCount() > 0) {
-//             throw new Exception("Product already in wishlist", 409);
-//         }
-        
-//         // Add to wishlist
-//         $insertStmt = $db->prepare("INSERT INTO u23770912_wishlist (user_id, product_id, add_date) VALUES (:user_id, :product_id, NOW())");
-//         $insertStmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':product_id' => $input['product_id']
-//         ]);
-        
-//         echo json_encode([
-//             'status' => 'success',
-//             'data' => ['message' => 'Product added to wishlist'],
-//             'timestamp' => round(microtime(true) * 1000)
-//         ]);
-        
-//     } catch (PDOException $e) {
-//         http_response_code(500);
-//         echo json_encode([
-//             'status' => 'error',
-//             'message' => 'Database error',
-//             'details' => $e->getMessage()
-//         ]);
-//     } catch (Exception $e) {
-//         http_response_code($e->getCode());
-//         echo json_encode([
-//             'status' => 'error',
-//             'message' => $e->getMessage()
-//         ]);
-//     }
-//     exit;
-// }
+        echo json_encode([
+            'status' => 'success',
+            'data' => ['message' => 'Product added to wishlist'],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+    } catch (Exception $e) {
+        http_response_code($e->getCode() ?: 500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+    }
+} 
     
-// else if ($input['type'] === 'RemoveFromWishlist') {
-//     try {
-//         $required = ['user_id', 'product_id', 'apikey'];
-//         foreach ($required as $field) {
-//             if (empty($input[$field])) {
-//                 throw new Exception("Missing field: $field", 400);
-//             }
-//         }
+else if ($input['type'] === 'RemoveFromWishlist') {
+    try {
+        // ===== Remove from Wishlist =====
+        $required = ['user_id', 'product_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
         
-//         // Verify API key
-//         $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
-//         $stmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':api_key' => $input['apikey']
-//         ]);
+        // Verify API key - Using PDO
+        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $stmt->execute([$input['user_id'], $input['apikey']]);
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Invalid API key or user ID", 401);
+        }
         
-//         if ($stmt->rowCount() === 0) {
-//             throw new Exception("Invalid API key or user ID", 401);
-//         }
+        // Remove from wishlist - Using PDO
+        $stmt = $db->prepare("DELETE FROM wishlist WHERE user_id = ? AND product_id = ?");
+        $stmt->execute([$input['user_id'], $input['product_id']]);
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Product not found in wishlist", 404);
+        }
         
-//         // Remove from wishlist
-//         $deleteStmt = $db->prepare("DELETE FROM u23770912_wishlist WHERE user_id = :user_id AND product_id = :product_id");
-//         $deleteStmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':product_id' => $input['product_id']
-//         ]);
-        
-//         if ($deleteStmt->rowCount() === 0) {
-//             throw new Exception("Product not found in wishlist", 404);
-//         }
-        
-//         echo json_encode([
-//             'status' => 'success',
-//             'data' => ['message' => 'Product removed from wishlist'],
-//             'timestamp' => round(microtime(true) * 1000)
-//         ]);
-        
-//     } catch (PDOException $e) {
-//         http_response_code(500);
-//         echo json_encode([
-//             'status' => 'error',
-//             'message' => 'Database error',
-//             'details' => $e->getMessage()
-//         ]);
-//     } catch (Exception $e) {
-//         http_response_code($e->getCode());
-//         echo json_encode([
-//             'status' => 'error',
-//             'message' => $e->getMessage()
-//         ]);
-//     }
-//     exit;
-// }
+        echo json_encode([
+            'status' => 'success',
+            'data' => ['message' => 'Product removed from wishlist'],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+    } catch (Exception $e) {
+        http_response_code($e->getCode() ?: 500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+    }
+}
     
-// else if ($input['type'] === 'GetWishlist') {
-//     try {
-//         $required = ['user_id', 'apikey'];
-//         foreach ($required as $field) {
-//             if (empty($input[$field])) {
-//                 throw new Exception("Missing field: $field", 400);
-//             }
-//         }
-
-//         // Verify API key
-//         $authStmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
-//         $authStmt->execute([
-//             ':user_id' => $input['user_id'],
-//             ':api_key' => $input['apikey']
-//         ]);
-
-//         if ($authStmt->rowCount() === 0) {
-//             throw new Exception("Invalid API key or user ID", 401);
-//         }
-
-//         // Get wishlist items
-//         $query = "
-//             SELECT 
-//                 p.product_id,
-//                 p.text AS name,
-//                 p.description, 
-//                 w.add_date
-//             FROM u23770912_wishlist w
-//             INNER JOIN u23770912_products p ON w.product_id = p.product_id
-//             WHERE w.user_id = :user_id
-//             ORDER BY w.add_date DESC
-//         ";
+else if ($input['type'] === 'GetWishlist') {
+    try {
+        error_log("[GetWishlist] Starting request processing");
         
-//         $stmt = $db->prepare($query);
-//         $stmt->execute([':user_id' => $input['user_id']]);
+        // Validate required fields
+        $required = ['user_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                error_log("[GetWishlist] Missing required field: $field");
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
         
-//         $wishlist = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-//         echo json_encode([
-//             'status' => 'success',
-//             'data' => [
-//                 'count' => count($wishlist),
-//                 'items' => $wishlist
-//             ],
-//             'timestamp' => round(microtime(true) * 1000)
-//         ]);
-        
-//         error_log("[GetWishlist] Request completed successfully");
-// }
+        error_log("[GetWishlist] Fields validated");
 
+        // Verify API key - Using PDO
+        $authStmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = ? AND api_key = ?");
+        $authStmt->execute([$input['user_id'], $input['apikey']]);
+        
+        if ($authStmt->rowCount() === 0) {
+            error_log("[GetWishlist] Invalid credentials for user_id: " . $input['user_id']);
+            throw new Exception("Invalid API key or user ID", 401);
+        }
+        
+        error_log("[GetWishlist] Authentication successful");
+
+        // Get wishlist items - Using PDO
+        $query = "
+            SELECT 
+                p.product_id,
+                p.text AS name,
+                p.description, 
+                w.add_date
+            FROM wishlist w
+            INNER JOIN product p ON w.product_id = p.product_id
+            WHERE w.user_id = ?
+            ORDER BY w.add_date DESC
+        ";
+        
+        error_log("[GetWishlist] Main query: " . str_replace("\n", " ", $query));
+        
+        $stmt = $db->prepare($query);
+        $stmt->execute([$input['user_id']]);
+        $wishlist = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("[GetWishlist] Found " . count($wishlist) . " items");
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => [
+                'count' => count($wishlist),
+                'items' => $wishlist
+            ],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+        
+        error_log("[GetWishlist] Request completed successfully");
+    } catch (Exception $e) {
+        error_log("[GetWishlist] Error: " . $e->getMessage());
+        http_response_code($e->getCode() ?: 500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+    }
+}
 
 else {
     http_response_code(400);
     echo json_encode(["status"=> "error","message"=> "Invalid Request Type..."]);
     exit;
 }
-
-
 
 ?>
