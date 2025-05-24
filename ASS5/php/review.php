@@ -12,7 +12,7 @@ class Review
     public function create(int $productId, int $rating, string $text)
     {
         // 1) Check availability
-        $sqlStmt   = "SELECT Available FROM Product WHERE Product_ID = :pid";
+        $sqlStmt   = "SELECT Available FROM product WHERE Product_ID = :pid";
         $checkStmt = $this->conn->prepare($sqlStmt);
         $checkStmt->bindParam(':pid', $productId, PDO::PARAM_INT);
         $checkStmt->execute();
@@ -26,7 +26,7 @@ class Review
         }
 
         // 2) Insert review
-        $newSql = "INSERT INTO Review (Product_ID, User_ID, Rating, Text, review_date)
+        $newSql = "INSERT INTO Reviews (Product_ID, User_ID, Rating, Text, review_date)
                    VALUES (:pid, :uid, :rating, :text, :rdate)";
         $stmt = $this->conn->prepare($newSql);
         $stmt->bindParam(':pid',    $productId, PDO::PARAM_INT);
@@ -53,7 +53,7 @@ class Review
     {
         $sql = "SELECT r.Review_ID, r.Product_ID, r.User_ID, r.Rating, r.Text, r.review_date AS Posted_At
                 FROM Review r
-                JOIN u23770912_users u ON u.User_ID = r.User_ID
+                JOIN users u ON u.User_ID = r.User_ID
                 WHERE r.Product_ID = :pid
                 ORDER BY r.Posted_At DESC";
         $stmt = $this->conn->prepare($sql);
