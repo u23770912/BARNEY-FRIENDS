@@ -10,7 +10,7 @@ class Review
     }
 
     public function create(int $productId, int $rating, string $text): array{
-        $checkSql ="Select Available From Products Where Product_id = :pid"
+        $checkSql ="Select Available From Products Where Product_id = :pid";
     }
 }
 
