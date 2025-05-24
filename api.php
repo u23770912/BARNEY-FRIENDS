@@ -214,7 +214,6 @@ else if ($input['type'] === 'GetWishlist') {
         $query = "
             SELECT 
                 p.product_id,
-                p.text AS name,
                 p.description, 
                 w.add_date
             FROM wishlist w
