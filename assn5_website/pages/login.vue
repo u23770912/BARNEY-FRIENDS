@@ -28,7 +28,7 @@
         </div>
 
         <button type="submit" class="btn-submit">Login</button>
-
+        
         <p class="register-link">
           Don't have an account?
           <router-link to="/signup" class="link">Register here</router-link>
@@ -43,24 +43,43 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+  import { ref } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useApi } from '~/composables/useApi';
 
-const email = ref('');
-const password = ref('');
-const error = ref('');
-const success = ref('');
-const router = useRouter();
+  const email = ref('');
+  const password = ref('');
+  const error = ref('');
+  const success = ref('');
+  const router = useRouter();
 
-function onSubmit() {
-  // Dummy auth logic
-  success.value = 'Login successful (dummy)';
+  async function onSubmit() {
   error.value = '';
+  success.value = '';
 
-  setTimeout(() => {
-    router.push('/');
-  }, 800);
-}
+    try {
+      const data = await useApi({
+        type: 'Login',
+        email: email.value,
+        password: password.value,
+      });
+
+      console.log('API Response:', data); // Debugging line
+
+      if (data.status === 'success') {
+        success.value = 'Login successful! Redirecting...';
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
+      } else {
+        error.value = data.message || 'Login failed';
+      }
+
+    } catch (err) {
+      error.value = 'Network error. Please try again.';
+    }
+
+  }
 </script>
 
 <style scoped>
@@ -168,5 +187,6 @@ function onSubmit() {
   margin-top: 0.5rem;
   color: #2a9d8f;
   font-size: 0.9rem;
+  text-align: center;
 }
 </style>

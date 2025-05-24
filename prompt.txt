@@ -1,0 +1,703 @@
+Okay i get these errors in my console:
+:3001/api/:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)
+useApi.js:22 API call failed: Error: Network response was not ok
+    at useApi (useApi.js:17:13)
+    at async onSubmit (signup.vue:125:20)
+useApi @ useApi.js:22
+
+The issue I'm having is this. I have an api.php file:
+
+<?php
+session_start();
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+header("Content-Type: application/json");
+
+require_once __DIR__ . '/ASS5/php/config.php'; 
+require_once __DIR__ . '/ASS5/php/user.php'; 
+
+$input = json_decode(file_get_contents("php://input"), true);
+
+// Check for missing type
+if (!isset($input['type'])) {
+    http_response_code(400);
+    echo json_encode(["status" => "error", "message" => "Request type not specified"]);
+    exit;
+}
+
+else if ($input['type'] === "Register") {
+    try {
+        $name = htmlspecialchars($input["name"]);
+        $name      = trim($input['name'] ?? "");
+        $surname   = trim($input['surname'] ?? "");
+        $email     = trim($input['email'] ?? "");
+        $password  = $input['password'] ?? "";
+
+        if (empty($name) || empty($surname) || empty($email) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => "Missing required fields"]);
+            exit;
+        }
+
+        $db = \Database::getInstance()->getConnection();
+        $user = new User($db);
+        $result = $user->register($name, $surname, $email, $password);
+
+        if ($result['status'] === "success") {
+            echo json_encode([
+                "status" => "success",
+                "timestamp" => round(microtime(true) * 1000),
+                "data" => ["apikey" => $result['apikey']]
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => $result['message']]);
+        }
+        exit;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Register failed", "details" => $e->getMessage()]);
+        exit;
+    }
+}
+
+else if ($input['type'] === "Login") {
+    try {
+        $email     = trim($input['email'] ?? "");
+        $password  = $input['password'] ?? "";
+
+        if (empty($email) || empty($password)) {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => "Missing required fields"]);
+            exit;
+        }
+
+        $user = new User($db);
+        $result = $user->login( $email, $password);
+
+        if ($result['status'] === "success") {
+
+            echo json_encode([
+                "status" => "success",
+                "timestamp" => round(microtime(true) * 1000),
+                "data" => [
+                    "apikey" => $result['apikey'],
+                    "userid" => $result['id'],
+                    "name"   => $result['name']
+                ]
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode(["status" => "error", "message" => $result['message']]);
+        }
+        exit;
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Login failed", "details" => $e->getMessage()]);
+        exit;
+    }
+}
+
+else if ($input['type'] === 'AddToWishlist') {
+    try {
+        $required = ['user_id', 'product_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
+        
+        // Verify API key
+        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
+        $stmt->execute([
+            ':user_id' => $input['user_id'],
+            ':api_key' => $input['apikey']
+        ]);
+        
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Invalid API key or user ID", 401);
+        }
+        
+        // Check if product exists
+        $productCheck = $db->prepare("SELECT product_id FROM u23770912_products WHERE product_id = :product_id");
+        $productCheck->execute([':product_id' => $input['product_id']]);
+        
+        if ($productCheck->rowCount() === 0) {
+            throw new Exception("Product not found", 404);
+        }
+        
+        // Check if already in wishlist
+        $checkStmt = $db->prepare("SELECT product_id FROM u23770912_wishlist WHERE user_id = :user_id AND product_id = :product_id");
+        $checkStmt->execute([
+            ':user_id' => $input['user_id'],
+            ':product_id' => $input['product_id']
+        ]);
+        
+        if ($checkStmt->rowCount() > 0) {
+            throw new Exception("Product already in wishlist", 409);
+        }
+        
+        // Add to wishlist
+        $insertStmt = $db->prepare("INSERT INTO u23770912_wishlist (user_id, product_id, add_date) VALUES (:user_id, :product_id, NOW())");
+        $insertStmt->execute([
+            ':user_id' => $input['user_id'],
+            ':product_id' => $input['product_id']
+        ]);
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => ['message' => 'Product added to wishlist'],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+        
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database error',
+            'details' => $e->getMessage()
+        ]);
+    } catch (Exception $e) {
+        http_response_code($e->getCode());
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+    
+else if ($input['type'] === 'RemoveFromWishlist') {
+    try {
+        $required = ['user_id', 'product_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
+        
+        // Verify API key
+        $stmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
+        $stmt->execute([
+            ':user_id' => $input['user_id'],
+            ':api_key' => $input['apikey']
+        ]);
+        
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("Invalid API key or user ID", 401);
+        }
+        
+        // Remove from wishlist
+        $deleteStmt = $db->prepare("DELETE FROM u23770912_wishlist WHERE user_id = :user_id AND product_id = :product_id");
+        $deleteStmt->execute([
+            ':user_id' => $input['user_id'],
+            ':product_id' => $input['product_id']
+        ]);
+        
+        if ($deleteStmt->rowCount() === 0) {
+            throw new Exception("Product not found in wishlist", 404);
+        }
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => ['message' => 'Product removed from wishlist'],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+        
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database error',
+            'details' => $e->getMessage()
+        ]);
+    } catch (Exception $e) {
+        http_response_code($e->getCode());
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+    
+else if ($input['type'] === 'GetWishlist') {
+    try {
+        $required = ['user_id', 'apikey'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Missing field: $field", 400);
+            }
+        }
+
+        // Verify API key
+        $authStmt = $db->prepare("SELECT id FROM u23770912_users WHERE id = :user_id AND api_key = :api_key");
+        $authStmt->execute([
+            ':user_id' => $input['user_id'],
+            ':api_key' => $input['apikey']
+        ]);
+
+        if ($authStmt->rowCount() === 0) {
+            throw new Exception("Invalid API key or user ID", 401);
+        }
+
+        // Get wishlist items
+        $query = "
+            SELECT 
+                p.product_id,
+                p.text AS name,
+                p.description, 
+                w.add_date
+            FROM u23770912_wishlist w
+            INNER JOIN u23770912_products p ON w.product_id = p.product_id
+            WHERE w.user_id = :user_id
+            ORDER BY w.add_date DESC
+        ";
+        
+        $stmt = $db->prepare($query);
+        $stmt->execute([':user_id' => $input['user_id']]);
+        
+        $wishlist = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => [
+                'count' => count($wishlist),
+                'items' => $wishlist
+            ],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+        
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database error',
+            'details' => $e->getMessage()
+        ]);
+    } catch (Exception $e) {
+        http_response_code($e->getCode());
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+
+else {
+    http_response_code(400);
+    echo json_encode(["status"=> "error","message"=> "Invalid Request Type..."]);
+    exit;
+}
+
+
+
+?>
+
+api.php is currently running on my universities server:
+https://wheatley.cs.up.ac.za/u23770912/COS221/api.php 
+
+but the issue is i can't access the php file because my universities server requires me to login using my university username and password each time i try to access the api.php.
+
+So i created my own localhost server (server.js). I want to mimick the api.php functionality though this server. How do i do that
+
+In a previous assignment i had to do something similar but this is how i went about it.
+
+i created a multi socket server (which i don't need this time around):
+server.js
+require('dotenv').config();
+const axios = require('axios');
+const readline = require('readline');
+const net = require('net');
+
+// Import utilities
+const {
+    createOrder,
+    getAllOrders,
+    updateOrder,
+    getDeliveringOrders,
+    notifyCustomersOfDelay,
+    resetOrdersToStorage,
+    markDroneCrashed
+} = require('./utils');
+
+// Constants
+const MIN_PORT = 1024;
+const MAX_PORT = 49151;
+const RESERVED_PORTS = [3306, 5432, 8080, 27017, 6379, 3000, 1883, 1521];
+
+// Drone status simulation
+const droneStatus = {
+    battery: 100,
+    altitude: 25,
+    operator: null,
+    latitude: -25.7478,
+    longitude: 28.1868
+};
+
+// Store users: username => { socket, role, operatingDrone }
+const users = new Map();
+
+// Setup CLI input
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+rl.question(`Enter a port number between ${MIN_PORT} and ${MAX_PORT}: `, (input) => {
+    const port = parseInt(input);
+
+    if (isNaN(port) || port < MIN_PORT || port > MAX_PORT) {
+        console.error(`Invalid port. Use a port between ${MIN_PORT} and ${MAX_PORT}.`);
+        rl.close();
+        process.exit(1);
+    }
+
+    if (RESERVED_PORTS.includes(port)) {
+        console.error(`Port ${port} is reserved. Choose another.`);
+        rl.close();
+        process.exit(1);
+    }
+
+    // Create TCP server
+    const server = net.createServer((socket) => {
+        const clientAddress = `${socket.remoteAddress}:${socket.remotePort}`;
+        console.log(`Client connected from ${clientAddress}`);
+        socket.write("Welcome.\nPlease send your username and role (e.g., 'john|courier or amy|customer'):\n");
+
+        let username = null;
+        let buffer = '';
+
+        // Handle incoming messages
+        socket.on('data', async (data) => {
+            buffer += data.toString();
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // Save incomplete line
+
+            for (let message of lines) {
+                message = message.trim();
+                if (!message) continue;
+
+                if (!username) {
+                    const parts = message.split('|');
+                    if (parts.length !== 2) {
+                        socket.write('Invalid format. Send "username|role"\n');
+                        return;
+                    }
+
+                    username = parts[0];
+                    const role = parts[1].toLowerCase();
+
+                    if (users.has(username)) {
+                        socket.write('Username already in use. Disconnecting.\n');
+                        socket.destroy();
+                        return;
+                    }
+
+                    users.set(username, {
+                        socket,
+                        role,
+                        operatingDrone: false
+                    });
+
+                    socket.write(`Hello, ${username}. You are now connected as a ${role}.\n`);
+                    console.log(`User registered: ${username} (${role}) from ${clientAddress}`);
+                    continue;
+                }
+
+                // Improved parser to handle quoted strings
+                const parts = [];
+                let current = '';
+                let inQuotes = false;
+
+                message.split('').forEach(char => {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                        if (!inQuotes && current) {
+                            parts.push(current.trim());
+                            current = '';
+                        }
+                    } else if (char === ' ' && !inQuotes) {
+                        if (current) {
+                            parts.push(current.trim());
+                            current = '';
+                        }
+                    } else {
+                        current += char;
+                    }
+                });
+                if (current) parts.push(current.trim());
+
+                // Remove surrounding quotes
+                for (let i = 0; i < parts.length; i++) {
+                    parts[i] = parts[i].replace(/^"(.+(?="$))"$/, '$1');
+                }
+
+                const command = parts[0]?.toUpperCase();
+
+                try {
+                    switch (command) {
+                        case 'CREATE_ORDER':
+                            if (parts.length !== 5) {
+                                socket.write('Usage: CREATE_ORDER <API_KEY> <LAT> <LONG> <DELIVERY_DATE>\n');
+                                break;
+                            }
+                            const [, api_key, lat, long, delivery_date] = parts;
+                            const createResult = await createOrder({
+                                api_key,
+                                destination_lat: lat,
+                                destination_long: long,
+                                delivery_date
+                            });
+                            socket.write(JSON.stringify(createResult, null, 2) + '\n');
+                            break;
+
+                        case 'GET_ALL_ORDERS':
+                            if (parts.length !== 2) {
+                                socket.write('Usage: GET_ALL_ORDERS <API_KEY>\n');
+                                break;
+                            }
+                            const getApi = parts[1];
+                            const getAllResult = await getAllOrders(getApi);
+                            socket.write(JSON.stringify(getAllResult, null, 2) + '\n');
+                            break;
+
+                        case 'UPDATE_ORDER':
+                            if (parts.length !== 6) {
+                                socket.write('Usage: UPDATE_ORDER <API_KEY> <ORDER_ID> <LAT> <LONG> <STATE>\n');
+                                break;
+                            }
+                            const [_, upApiKey, orderId, latUp, longUp, stateUp] = parts;
+                            const updateResult = await updateOrder({
+                                api_key: upApiKey,
+                                order_id: parseInt(orderId),
+                                latitude: parseFloat(latUp),
+                                longitude: parseFloat(longUp),
+                                state: stateUp
+                            });
+                            socket.write(JSON.stringify(updateResult, null, 2) + '\n');
+                            break;
+
+                        case 'DRONE':
+                            if (message.toUpperCase() === 'DRONE STATUS') {
+                                socket.write(`Drone Status:\n${JSON.stringify(droneStatus, null, 2)}\n`);
+                            } else {
+                                socket.write('Unknown DRONE command. Try: DRONE STATUS\n');
+                            }
+                            break;
+
+                        case 'CURRENTLY':
+                            // Check if full command is "CURRENTLY DELIVERING" and has an API key
+                            if (parts.length >= 3 && 
+                                parts[0].toUpperCase() === 'CURRENTLY' && 
+                                parts[1].toUpperCase() === 'DELIVERING') {
+
+                                const api_key = parts[2];
+
+                                try {
+                                    const deliveringResult = await getDeliveringOrders(api_key);
+                                    socket.write(JSON.stringify(deliveringResult, null, 2) + '\n');
+                                } catch (err) {
+                                    console.error(`Error fetching delivering orders: ${err.message}`);
+                                    socket.write(JSON.stringify({ success: false, message: err.message }, null, 2) + '\n');
+                                }
+
+                            } else {
+                                socket.write('Usage: CURRENTLY DELIVERING <API_KEY>\n');
+                            }
+                            break;
+
+                        case 'KILL':
+                            const targetUsername = message.substring(5).trim();
+                            if (users.has(targetUsername)) {
+                                const target = users.get(targetUsername);
+                                target.socket.write('Your connection has been terminated by the server.\n');
+                                target.socket.destroy();
+                                users.delete(targetUsername);
+                                socket.write(`User "${targetUsername}" has been disconnected.\n`);
+                                console.log(`User "${targetUsername}" was killed by ${username}`);
+                            } else {
+                                socket.write(`No user "${targetUsername}" is connected.\n`);
+                            }
+                            break;
+
+                        case 'QUIT':
+                            const quitMessage = 'Server is shutting down now.\n';
+                            users.forEach(user => {
+                                user.socket.write(quitMessage);
+                                user.socket.destroy();
+                            });
+                            socket.write(quitMessage);
+                            process.exit(0);
+                            break;
+
+                        default:
+                            console.log(`Received from ${username}@${clientAddress}: ${message}`);
+                            socket.write(`Echo: ${message}\n`);
+                    }
+                } catch (err) {
+                    console.error(`Error processing command from ${username}: ${err.message}`);
+                    socket.write(`Error: ${err.message}\n`);
+                }
+            }
+        });
+
+        // Handle disconnects
+        socket.on('close', () => {
+            if (username && users.has(username)) {
+                const { role, operatingDrone } = users.get(username);
+                users.delete(username);
+                console.log(`User disconnected: ${username} (${role}) from ${clientAddress}`);
+
+                if (role === 'courier' && operatingDrone) {
+                    console.log(`Courier ${username} disconnected while operating a drone!`);
+                    notifyCustomersOfDelay(username);
+                    resetOrdersToStorage(username);
+                    markDroneCrashed(username);
+                }
+            }
+        });
+
+        socket.on('error', (err) => {
+            console.log(`Error with ${clientAddress}: ${err.message}`);
+        });
+    });
+
+    // Start server
+    server.listen(port, () => {
+        console.log(`Server running on http://localhost:${port}`);
+        rl.close();
+    });
+
+    server.on('error', (err) => {
+        console.error(`Server error: ${err.message}`);
+        process.exit(1);
+    });
+
+    // Simulate drone updates every 3 seconds
+    setInterval(() => {
+        droneStatus.battery = Math.max(0, droneStatus.battery - 1);
+        droneStatus.latitude += (Math.random() * 0.001 - 0.0005);
+        droneStatus.longitude += (Math.random() * 0.001 - 0.0005);
+
+        if (droneStatus.operator && droneStatus.battery <= 0) {
+            console.log(`Drone battery dead for courier ${droneStatus.operator}`);
+            notifyCustomersOfDelay(droneStatus.operator);
+            resetOrdersToStorage(droneStatus.operator);
+            markDroneCrashed(droneStatus.operator);
+            droneStatus.operator = null;
+        }
+    }, 3000);
+});
+
+Then i created a utils.js:
+const axios = require('axios');
+require('dotenv').config();
+
+// Base URL to your PHP API
+const WHEATLEY_API_URL = 'https://wheatley.cs.up.ac.za/u24580717/api.php ';
+
+// Create Axios instance with Wheatley credentials
+const apiClient = axios.create({
+    baseURL: WHEATLEY_API_URL,
+    auth: {
+        username: process.env.WHEATLEY_USER,
+        password: process.env.WHEATLEY_PASS
+    },
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
+
+/**
+ * Helper function to send requests to the PHP API
+ */
+async function sendApiRequest(data) {
+    try {
+        const response = await apiClient.post('', data);
+        return response.data;
+    } catch (error) {
+        console.error('API error:', error.message);
+        if (error.response) {
+            console.error('Server responded with:', error.response.status, error.response.data);
+        } else if (error.request) {
+            console.error('No response received from server.');
+        }
+        return { success: false, message: error.message };
+    }
+}
+
+module.exports = {
+    createOrder: async (data) => {
+        return sendApiRequest({
+            type: 'createOrder',
+            api_key: data.api_key,
+            destination_lat: parseFloat(data.destination_lat),
+            destination_long: parseFloat(data.destination_long),
+            delivery_date: data.delivery_date
+        });
+    },
+
+    updateOrder: async (data) => {
+        return sendApiRequest({
+            type: 'updateOrder',
+            api_key: data.api_key,
+            order_id: data.order_id,
+            latitude: parseFloat(data.latitude),
+            longitude: parseFloat(data.longitude),
+            state: data.state
+        });
+    },
+
+    getAllOrders: async (api_key) => {
+        return sendApiRequest({
+            type: 'getAllOrders',
+            api_key
+        });
+    },
+
+    getDeliveringOrders: async (api_key) => {
+        return sendApiRequest({
+            type: 'getDeliveringOrders',
+            api_key
+        });
+    },
+
+    createDrone: async (data) => {
+        return sendApiRequest({
+            type: 'createDrone',
+            api_key: data.api_key
+        });
+    },
+
+    updateDrone: async (data) => {
+        return sendApiRequest({
+            type: 'updateDrone',
+            api_key: data.api_key,
+            drone_id: data.drone_id,
+            is_available: data.is_available,
+            latitude: parseFloat(data.latitude),
+            longitude: parseFloat(data.longitude),
+            altitude: parseFloat(data.altitude),
+            battery_level: parseFloat(data.battery_level)
+        });
+    },
+
+    getAllDrones: async (api_key) => {
+        return sendApiRequest({
+            type: 'getAllDrones',
+            api_key
+        });
+    }
+};
+
+
+So can you use simliar appraoch for my NUXT project?

@@ -5,6 +5,29 @@
 
       <!-- Dummy signup form – replace submit handler with real API call later -->
       <form class="signup-form" @submit.prevent="onSubmit">
+        
+          <div class="form-field">
+            <label for="name">First Name</label>
+            <input
+              type="text"
+              id="name"
+              v-model="name"
+              placeholder="John"
+              required
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="surname">Last Name</label>
+            <input
+              type="text"
+              id="surname"
+              v-model="surname"
+              placeholder="Smith"
+              required
+            />
+          </div>
+        
         <div class="form-field">
           <label for="email">Email</label>
           <input
@@ -54,33 +77,77 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+  import { ref } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { useApi } from '~/composables/useApi';
 
-const email    = ref('');
-const password = ref('');
-const confirm  = ref('');
-const error    = ref('');
-const success  = ref('');
-const router   = useRouter();
+  const email = ref('');
+  const password = ref('');
+  const name = ref('');
+  const surname = ref('');
+  const confirm = ref('');
+  const error = ref('');
+  const success = ref('');
+  const router = useRouter();
 
-function onSubmit() {
-  // very basic front-end check for matching passwords
-  if (password.value !== confirm.value) {
-    error.value   = 'Passwords do not match';
+  // Regexes
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+  // Simplified and more robust
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+  async function onSubmit() {
+    error.value = '';
     success.value = '';
-    return;
+
+    // --- Basic client validation ---
+    if (!name.value || !surname.value || !email.value || !password.value || !confirm.value) {
+      error.value = 'All fields are required.';
+      return;
+    }
+
+    if (!emailRegex.test(email.value)) {
+      error.value = 'Please enter a valid email address.';
+      return;
+    }
+
+    if (!passwordRegex.test(password.value)) {
+      error.value =
+        'Password must be at least 8 characters, include upper/lowercase, number, and special character.';
+      return;
+    }
+
+    if (password.value !== confirm.value) {
+      error.value = 'Passwords do not match.';
+      return;
+    }
+
+    // --- API Call ---
+    try {
+      const data = await useApi({
+        type: 'Register',
+        name: name.value,
+        surname: surname.value,
+        email: email.value,
+        password: password.value,
+      });
+
+    if (data.status === 'success' && data.data?.apikey) {
+      success.value = 'Signup successful! Redirecting to login...';
+      setTimeout(() => router.push('/login'), 1500);
+    } else if (data.status === 'success' && !data.data?.apikey) {
+      // This is likely a registration success but no apikey returned
+      success.value = 'Signup successful but no API key received. Try logging in.';
+      setTimeout(() => router.push('/login'), 2000);
+    } else {
+      error.value = data.message || 'Signup failed. Please try again.';
+    }
+    } catch (err) {
+      error.value = 'Network error. Please try again.';
+    }
   }
-
-  // Dummy success path
-  success.value = 'Signup successful (dummy)';
-  error.value   = '';
-
-  setTimeout(() => {
-    router.push('/login'); // send new user to login page
-  }, 900);
-}
 </script>
+
+
 
 <style scoped>
 /* ---------- Layout ---------- */
@@ -181,11 +248,13 @@ function onSubmit() {
   margin-top: 0.5rem;
   color: #e63946;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .success {
   margin-top: 0.5rem;
   color: #2a9d8f;
   font-size: 0.9rem;
+  text-align: center;
 }
 </style>
