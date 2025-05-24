@@ -52,7 +52,7 @@ class Review
     public function getByProduct(int $productId)
     {
         $sql = "SELECT r.Review_ID, r.Product_ID, r.User_ID, r.Rating, r.Text, r.review_date AS Posted_At
-                FROM Review r
+                FROM Reviews r
                 JOIN users u ON u.User_ID = r.User_ID
                 WHERE r.Product_ID = :pid
                 ORDER BY r.Posted_At DESC";
@@ -69,7 +69,7 @@ class Review
     public function getByUser()
     {
         $sql = "SELECT Review_ID, Product_ID, Rating, Text, Posted_At
-                FROM Review
+                FROM Reviews
                 WHERE User_ID = :uid
                 ORDER BY Posted_At DESC";
         $stmt = $this->conn->prepare($sql);
@@ -109,7 +109,7 @@ class Review
 
     public function delete(int $reviewId)
     {
-        $sql = "DELETE FROM Review
+        $sql = "DELETE FROM Reviews
                 WHERE Review_ID = :rid
                   AND User_ID   = :uid";
         $stmt = $this->conn->prepare($sql);
