@@ -26,7 +26,7 @@ class Review
         }
 
         // 2) Insert review
-        $newSql = "INSERT INTO Reviews (Product_ID, User_ID, Rating, Text, review_date)
+        $newSql = "INSERT INTO reviews (Product_ID, User_ID, Rating, Text, review_date)
                    VALUES (:pid, :uid, :rating, :text, :rdate)";
         $stmt = $this->conn->prepare($newSql);
         $stmt->bindParam(':pid',    $productId, PDO::PARAM_INT);
@@ -52,7 +52,7 @@ class Review
     public function getByProduct(int $productId)
     {
         $sql = "SELECT r.Review_ID, r.Product_ID, r.User_ID, r.Rating, r.Text, r.review_date AS Posted_At
-                FROM Reviews r
+                FROM reviews r
                 JOIN users u ON u.User_ID = r.User_ID
                 WHERE r.Product_ID = :pid
                 ORDER BY r.Posted_At DESC";
@@ -69,7 +69,7 @@ class Review
     public function getByUser()
     {
         $sql = "SELECT Review_ID, Product_ID, Rating, Text, Posted_At
-                FROM Reviews
+                FROM reviews
                 WHERE User_ID = :uid
                 ORDER BY Posted_At DESC";
         $stmt = $this->conn->prepare($sql);
@@ -109,7 +109,7 @@ class Review
 
     public function delete(int $reviewId)
     {
-        $sql = "DELETE FROM Reviews
+        $sql = "DELETE FROM reviews
                 WHERE Review_ID = :rid
                   AND User_ID   = :uid";
         $stmt = $this->conn->prepare($sql);
