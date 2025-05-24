@@ -45,7 +45,7 @@ else if ($input['type'] === "Register") {
             echo json_encode([
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
-                "data" => ["apikey" => $result['api_key']]
+                "data" => ["apikey" => $result['apikey']]
             ]);
         } else {
             http_response_code(400);
@@ -79,7 +79,7 @@ else if ($input['type'] === "Login") {
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
                 "data" => [
-                    "apikey" => $result['api_key'],
+                    "apikey" => $result['apikey'],
                     "userid" => $result['id'],
                     "name"   => $result['name']
                 ]
