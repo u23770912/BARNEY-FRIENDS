@@ -254,18 +254,30 @@ else if ($input['type'] === 'GetWishlist') {
 else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
 {
     // 1) Authenticate
-    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-    $auth = new User($db);
-    if (!$auth->authenticateApiKey($apiKey)) {
-        http_response_code(401);
+    $userId = $input['user_id'] ?? null;
+    $apiKey = $input['apikey']  ?? '';
+    if (! $userId) {
+        http_response_code(422);
         echo json_encode([
             "status"  => "error",
-            "message" => "Unauthorized"
+            "message" => "user_id and apikey are required"
         ]);
         exit;
     }
-    $currentUserId = $auth->getUserId();
-    $svc = new Review($db, $currentUserId);
+
+    $authStmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
+    $authStmt->execute([$userId, $apiKey]);
+
+    if ($authStmt->rowCount() === 0) {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => "error",
+            "message" => "Invalid API key or user ID"
+        ]);
+        exit;
+    }
+
+    $svc = new Review($db, (int)$userId);
 
     // 2) Dispatch
     switch ($input['type']) {
