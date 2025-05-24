@@ -92,6 +92,7 @@ else if ($input['type'] === "Login") {
     }
 }
 
+
 else if ($input['type'] === 'AddToWishlist') {
         // ===== Add to Wishlist =====
         $required = ['user_id', 'product_id', 'apikey'];
