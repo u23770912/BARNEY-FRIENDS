@@ -1,33 +1,31 @@
 <?php
+require_once __DIR__ . '/../../vendor/autoload.php';
+use Dotenv\Dotenv;
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
 class Database {
     private static $instance = null;
     private $conn;
 
-    private $host;
-    private $dbname;
-    private $username;
-    private $password;
-
     private function __construct() {
-        // Pull from the environment
-        $this->host     = getenv('DB_HOST');
-        $this->dbname   = getenv('DB_NAME');
-        $this->username = getenv('DB_USERNAME');
-        $this->password = getenv('DB_PASSWORD');
+        $host     = $_ENV['DB_HOST'];
+        $dbname   = $_ENV['DB_NAME'];
+        $username = $_ENV['DB_USER'];
+        $password = $_ENV['DB_PASS'];
 
         try {
             $this->conn = new PDO(
-                "mysql:host={$this->host};dbname={$this->dbname}",
-                $this->username,
-                $this->password
+                "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
+                $username,
+                $password
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            // Make sure errors are returned in JSON if this is an API
             header('Content-Type: application/json');
             echo json_encode([
-              'status'  => 'error',
-              'message' => 'Database connection error'
+                'status'  => 'error',
+                'message' => 'Database connection error'
             ]);
             exit;
         }
