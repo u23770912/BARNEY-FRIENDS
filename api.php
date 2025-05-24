@@ -42,10 +42,14 @@ else if ($input['type'] === "Register") {
         $result = $user->register($name, $surname, $email, $password);
 
         if ($result['status'] === "success") {
-            echo json_encode([
+             echo json_encode([
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
-                "data" => ["apikey" => $result['apikey']]
+                "data" => [
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
+                ]
             ]);
         } else {
             http_response_code(400);
