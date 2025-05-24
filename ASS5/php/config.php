@@ -40,15 +40,4 @@ class Database {
     }
 }
 
-// Initialize a mysqli connection for compatibility with existing code
-$database = Database::getInstance();
-$pdo = $database->getConnection();
-
-// Create mysqli connection for backward compatibility
-$db = new mysqli("wheatley.cs.up.ac.za", "u23976072", "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC", "u23976072_COS221Ass5");
-
-if ($db->connect_error) {
-    die("Connection failed: " . $db->connect_error);
-}
-
 ?>
