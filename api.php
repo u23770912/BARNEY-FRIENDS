@@ -274,15 +274,15 @@ else if ($input['type'] === 'GetProducts') {
                     )
                 ) AS prices
             FROM 
-                u23770912_products p
+                products p
             JOIN 
-                u23770912_brand b ON p.brand_id = b.brand_id
+                1234_brand b ON p.brand_id = b.brand_id
             LEFT JOIN 
-                u23770912_image i ON p.product_id = i.product_id
+                1234_image i ON p.product_id = i.product_id
             LEFT JOIN 
-                u23770912_price pr ON p.product_id = pr.product_id
+                1234_price pr ON p.product_id = pr.product_id
             LEFT JOIN 
-                u23770912_retailer r ON pr.retailer_id = r.retailer_id
+                retailer r ON pr.retailer_id = r.retailer_id
             GROUP BY 
                 p.product_id
             ORDER BY 
