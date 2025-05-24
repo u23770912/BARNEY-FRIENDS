@@ -37,14 +37,14 @@ class User {
         
         // 6) Insert user
         $insertSql  = "INSERT INTO users (name, surname, email, password, salt, api_key)
-                       VALUES (:name, :surname, :email, :password, :salt, :api_key)";
+                       VALUES (:name, :surname, :email, :password, :salt, :apikey)";
         $insertStmt = $this->conn->prepare($insertSql);
         $insertStmt->bindParam(':name',     $name);
         $insertStmt->bindParam(':surname',  $surname);
         $insertStmt->bindParam(':email',    $email);
         $insertStmt->bindParam(':password', $hashedPassword);
         $insertStmt->bindParam(':salt',     $salt);
-        $insertStmt->bindParam(':api_key',  $apikey);
+        $insertStmt->bindParam(':apikey',  $apikey);
         
         try {
             $insertStmt->execute();
@@ -108,7 +108,7 @@ class User {
                 'name'     => $row['name'],
                 'surname'  => $row['surname'],
                 'email'    => $email,
-                'api_key'  => $row['api_key']
+                'apikey'  => $row['api_key']
             ]
         ];
     }
