@@ -79,9 +79,9 @@ else if ($input['type'] === "Login") {
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
                 "data" => [
-                    "apikey" => $result['apikey'],
-                    "userid" => $result['id'],
-                    "name"   => $result['name']
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
                 ]
             ]);
         } else {
