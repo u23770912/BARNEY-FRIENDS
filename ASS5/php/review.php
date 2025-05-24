@@ -12,7 +12,7 @@ class Review
     public function create(int $productId, int $rating, string $text)
     {
         // 1) Check availability
-        $sqlStmt   = "SELECT Available FROM Products WHERE Product_ID = :pid";
+        $sqlStmt   = "SELECT Available FROM Product WHERE Product_ID = :pid";
         $checkStmt = $this->conn->prepare($sqlStmt);
         $checkStmt->bindParam(':pid', $productId, PDO::PARAM_INT);
         $checkStmt->execute();
