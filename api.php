@@ -251,6 +251,94 @@ else if ($input['type'] === 'GetWishlist') {
     }
 }
 
+else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
+{
+    // 1) Authenticate
+    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
+    $auth = new User($db);
+    if (!$auth->authenticateApiKey($apiKey)) {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => "error",
+            "message" => "Unauthorized"
+        ]);
+        exit;
+    }
+    $currentUserId = $auth->getUserId();
+    $svc = new Review($db, $currentUserId);
+
+    // 2) Dispatch
+    switch ($input['type']) {
+        case "CreateReview":
+            $pid    = $input['product_id'] ?? null;
+            $rating = $input['rating']    ?? null;
+            $text   = trim($input['text'] ?? '');
+
+            if (!$pid || !is_numeric($rating) || $rating < 1 || $rating > 5 || $text === '') {
+                http_response_code(422);
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "product_id, rating (1-5) and non-empty text are required"
+                ]);
+                exit;
+            }
+
+            $res = $svc->create($pid, (int)$rating, $text);
+            http_response_code($res['status'] === 'success' ? 201 : 400);
+            echo json_encode($res);
+            break;
+
+        case "GetByProduct":
+            $pid = $input['product_id'] ?? null;
+            if (! $pid) {
+                http_response_code(422);
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "product_id is required"
+                ]);
+                exit;
+            }
+            echo json_encode($svc->getByProduct((int)$pid));
+            break;
+
+        case "GetByUser":
+            echo json_encode($svc->getByUser());
+            break;
+
+        case "UpdateReview":
+            $rid    = $input['review_id'] ?? null;
+            $rating = $input['rating']    ?? null;
+            $text   = trim($input['text'] ?? '');
+
+            if (! $rid || ! is_numeric($rating) || $rating < 1 || $rating > 5 || $text === '') {
+                http_response_code(422);
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "review_id, rating (1-5) and non-empty text are required"
+                ]);
+                exit;
+            }
+
+            echo json_encode($svc->update((int)$rid, (int)$rating, $text));
+            break;
+
+        case "DeleteReview":
+            $rid = $input['review_id'] ?? null;
+            if (! $rid) {
+                http_response_code(422);
+                echo json_encode([
+                    "status"  => "error",
+                    "message" => "review_id is required"
+                ]);
+                exit;
+            }
+            echo json_encode($svc->delete((int)$rid));
+            break;
+    }
+
+    exit;
+}
+
 else {
     http_response_code(400);
     echo json_encode(["status"=> "error","message"=> "Invalid Request Type..."]);
