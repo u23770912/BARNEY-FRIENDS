@@ -4,17 +4,19 @@
 // $dotenv->load();
 class Database {
     private static $instance = null;
-    private $host     = 'wheatley.cs.up.ac.za';
-    private $dbname   = 'u23976072_COS221Ass5';
-    private $username = 'u23976072';
-    private $password = 'LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC';
+    private $conn;
+
+    private $host;
+    private $dbname;
+    private $username;
+    private $password;
 
     private function __construct() {
         // Pull from the environment
-        $this->host     = getenv('DB_HOST');
-        $this->dbname   = getenv('DB_NAME');
-        $this->username = getenv('DB_USERNAME');
-        $this->password = getenv('DB_PASSWORD');
+        $this->host     = "wheatley.cs.up.ac.za";
+        $this->dbname   = "u23976072_COS221Ass5";
+        $this->username = "u23976072";
+        $this->password = "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC";
 
         try {
             $this->conn = new PDO(
