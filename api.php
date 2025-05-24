@@ -276,11 +276,11 @@ else if ($input['type'] === 'GetProducts') {
             FROM 
                 products p
             JOIN 
-                brand b ON p.brand_id = b.brand_id
+                1234_brand b ON p.brand_id = b.brand_id
             LEFT JOIN 
-                image i ON p.product_id = i.product_id
+                1234_image i ON p.product_id = i.product_id
             LEFT JOIN 
-                price pr ON p.product_id = pr.product_id
+                1234_price pr ON p.product_id = pr.product_id
             LEFT JOIN 
                 retailer r ON pr.retailer_id = r.retailer_id
             GROUP BY 
