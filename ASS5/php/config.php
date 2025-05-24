@@ -1,36 +1,37 @@
 <?php
-// require_once __DIR__ . '/../../vendor/autoload.php';
-// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
-// $dotenv->load();
+// config.php at C:\Users\socce\Documents\COS221\ASS5\ASS5\php\config.php
+
+// 1) Load Composer’s autoloader from C:\Users\socce\Documents\COS221\ASS5\vendor\autoload.php
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+// 2) Tell phpdotenv to load the .env from C:\Users\socce\Documents\COS221\ASS5\.env
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
 class Database {
     private static $instance = null;
     private $conn;
 
-    private $host;
-    private $dbname;
-    private $username;
-    private $password;
-
     private function __construct() {
-        // Pull from the environment
-        $this->host     = "wheatley.cs.up.ac.za";
-        $this->dbname   = "u23976072_COS221Ass5";
-        $this->username = "u23976072";
-        $this->password = "LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC";
+        $host     = $_ENV['DB_HOST'];
+        $dbname   = $_ENV['DB_NAME'];
+        $username = $_ENV['DB_USER'];
+        $password = $_ENV['DB_PASS'];
 
         try {
             $this->conn = new PDO(
-                "mysql:host={$this->host};dbname={$this->dbname}",
-                $this->username,
-                $this->password
+                "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
+                $username,
+                $password
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            // Make sure errors are returned in JSON if this is an API
             header('Content-Type: application/json');
             echo json_encode([
-              'status'  => 'error',
-              'message' => 'Database connection error'
+                'status'  => 'error',
+                'message' => 'Database connection error'
             ]);
             exit;
         }
