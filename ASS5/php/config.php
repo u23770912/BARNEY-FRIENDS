@@ -4,12 +4,10 @@
 // $dotenv->load();
 class Database {
     private static $instance = null;
-    private $conn;
-
-    private $host;
-    private $dbname;
-    private $username;
-    private $password;
+    private $host     = 'wheatley.cs.up.ac.za';
+    private $dbname   = 'u23976072_COS221Ass5';
+    private $username = 'u23976072';
+    private $password = 'LYCUW3YGLIB7THQGRWU2N5WHX6WBOMIC';
 
     private function __construct() {
         // Pull from the environment
