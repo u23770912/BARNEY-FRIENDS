@@ -17,6 +17,9 @@ $db = $database->getConnection();
 
 $input = json_decode(file_get_contents("php://input"), true);
 
+$product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : null;
+$api_key    = $_GET['api_key']    ?? null;
+
 // Check for missing type
 if (!isset($input['type'])) {
     http_response_code(400);
@@ -346,6 +349,83 @@ else if ($input['type'] === 'GetProducts') {
         ]);
     }
     exit;
+}
+
+else if ($input['type'] === "GetProduct") {
+    if (!$product_id) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id']);
+      exit;
+    }
+    $stmt = $db->prepare(
+      "SELECT product_id, brand_id, description, availability, retailer_id
+       FROM products
+       WHERE product_id = :pid
+       LIMIT 1"
+    );
+    $stmt->execute([':pid'=>$product_id]);
+    if ($stmt->rowCount()===0) {
+      http_response_code(404);
+      echo json_encode(['status'=>'error','message'=>'Product not found']);
+      exit;
+    }
+    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','product'=>$product]);  
+}
+
+else if ($input['type'] === "GetReviews"){
+    if (!$product_id) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id']);
+      exit;
+    }
+    $stmt = $db->prepare(
+      "SELECT r.review_id, r.product_id, r.user_id, r.text, r.rating, r.review_date,
+              u.name, u.surname
+       FROM reviews r
+       JOIN users u ON u.id = r.user_id
+       WHERE r.product_id = :pid
+       ORDER BY r.review_date DESC"
+    );
+    $stmt->execute([':pid'=>$product_id]);
+    $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','reviews'=>$reviews]);
+}
+
+else if ($input['type'] === "GetUserReview"){
+    if (!$product_id || !$api_key) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id or api_key']);
+      exit;
+    }
+    // First lookup user_id by api_key
+    $u = $db->prepare("SELECT id FROM users WHERE api_key = :key LIMIT 1");
+    $u->execute([':key'=>$api_key]);
+    if ($u->rowCount()===0) {
+      http_response_code(401);
+      echo json_encode(['status'=>'error','message'=>'Invalid API key']);
+      exit;
+    }
+    $user_row = $u->fetch(PDO::FETCH_ASSOC);
+    // Now fetch their review
+    $stmt = $db->prepare(
+      "SELECT review_id, product_id, user_id, text, rating, review_date
+       FROM reviews
+       WHERE product_id = :pid
+         AND user_id    = :uid
+       LIMIT 1"
+    );
+    $stmt->execute([
+      ':pid'=> $product_id,
+      ':uid'=> $user_row['id']
+    ]);
+    if ($stmt->rowCount()===0) {
+      http_response_code(404);
+      echo json_encode(['status'=>'error','message'=>'No review found for this user/product']);
+      exit;
+    }
+    $review = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','review'=>$review]);
 }
 
 else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
