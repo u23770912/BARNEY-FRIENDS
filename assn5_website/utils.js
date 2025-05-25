@@ -18,7 +18,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  timeout: 5000 // 👈 Add timeout so it fails fast
+  timeout: 5000 //Add timeout so it fails fast
 });
 
 export const sendApiRequest = async (data) => {

@@ -25,7 +25,7 @@
         <div
           v-for="(price, index) in product.prices"
           :key="index"
-          class="flex justify-between items-center bg-gray-50 px-3 py-1 rounded"
+          class="flex justify-between items-center bg-white-50 px-3 py-1 rounded"
         >
           <span class="font-medium">{{ price.retailer_name }}</span>
           <span class="text-gray-800">R{{ Math.round(price.price / 100) * 100 }}</span>
