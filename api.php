@@ -346,7 +346,7 @@ else if ($input['type'] === "GetProduct") {
     }
     $stmt = $db->prepare(
       "SELECT product_id, brand_id, description, availability, retailer_id
-       FROM products
+       FROM product
        WHERE product_id = :pid
        LIMIT 1"
     );
