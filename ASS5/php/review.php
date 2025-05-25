@@ -84,7 +84,7 @@ class Review
 
     public function update(int $reviewId, int $rating, string $text)
     {
-        $sql = "UPDATE Review
+        $sql = "UPDATE Reviews
                 SET Rating = :rating, Text = :text
                 WHERE Review_ID = :rid
                   AND User_ID   = :uid";

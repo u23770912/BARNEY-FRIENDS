@@ -17,6 +17,9 @@ $db = $database->getConnection();
 
 $input = json_decode(file_get_contents("php://input"), true);
 
+$product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : null;
+$api_key    = $_GET['api_key']    ?? null;
+
 // Check for missing type
 if (!isset($input['type'])) {
     http_response_code(400);
@@ -42,10 +45,14 @@ else if ($input['type'] === "Register") {
         $result = $user->register($name, $surname, $email, $password);
 
         if ($result['status'] === "success") {
-            echo json_encode([
+             echo json_encode([
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
-                "data" => ["apikey" => $result['apikey']]
+                "data" => [
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
+                ]
             ]);
         } else {
             http_response_code(400);
@@ -79,9 +86,9 @@ else if ($input['type'] === "Login") {
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
                 "data" => [
-                    "apikey" => $result['apikey'],
-                    "userid" => $result['id'],
-                    "name"   => $result['name']
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
                 ]
             ]);
         } else {
@@ -252,6 +259,180 @@ else if ($input['type'] === 'GetWishlist') {
     }
 }
 
+else if ($input['type'] === 'GetProducts') {
+    try {
+        // Get basic product info
+        $query = "
+            SELECT 
+                p.product_id,
+                p.description,
+                p.availability AS product_availability,
+                b.brand_id,
+                b.brand_name,
+                i.url_1 AS image_url_1,
+                i.url_2 AS image_url_2,
+                i.url_3 AS image_url_3
+            FROM 
+                product p
+            JOIN 
+                brand b ON p.brand_id = b.brand_id
+            LEFT JOIN 
+                image i ON p.product_id = i.product_id
+            ORDER BY 
+                p.product_id
+        ";
+
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Get all prices with retailer info
+        $priceQuery = "
+            SELECT 
+                pr.product_id,
+                pr.price_id,
+                pr.retailer_id,
+                r.retailer_name,
+                pr.price,
+                pr.availability
+            FROM 
+                price pr
+            JOIN 
+                retailer r ON pr.retailer_id = r.retailer_id
+        ";
+        $priceStmt = $db->prepare($priceQuery);
+        $priceStmt->execute();
+        $allPrices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organize prices by product_id
+        $pricesByProduct = [];
+        foreach ($allPrices as $price) {
+            $pricesByProduct[$price['product_id']][] = [
+                'price_id' => $price['price_id'],
+                'retailer_id' => $price['retailer_id'],
+                'retailer_name' => $price['retailer_name'],
+                'price' => (float)$price['price'],
+                'availability' => (int)$price['availability']
+            ];
+        }
+
+        // Combine products with their prices
+        $formattedProducts = array_map(function($product) use ($pricesByProduct) {
+            $product['prices'] = $pricesByProduct[$product['product_id']] ?? [];
+            
+            $product['images'] = array_filter([
+                $product['image_url_1'],
+                $product['image_url_2'],
+                $product['image_url_3']
+            ]);
+            
+            unset($product['image_url_1'], $product['image_url_2'], $product['image_url_3']);
+            
+            return $product;
+        }, $products);
+
+        echo json_encode([
+            'status' => 'success',
+            'data' => [
+                'count' => count($formattedProducts),
+                'products' => $formattedProducts
+            ],
+            'timestamp' => round(microtime(true) * 1000)
+        ]);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Database error',
+            'details' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+else if ($input['type'] === "GetProduct") {
+    $product_id = $input["product_id"];
+    $api_key = $input["apikey"];
+    if (!$product_id) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id']);
+      exit;
+    }
+    $stmt = $db->prepare(
+      "SELECT product_id, brand_id, description, availability, retailer_id
+       FROM product
+       WHERE product_id = :pid
+       LIMIT 1"
+    );
+    $stmt->execute([':pid'=>$product_id]);
+    if ($stmt->rowCount()===0) {
+      http_response_code(404);
+      echo json_encode(['status'=>'error','message'=>'Product not found']);
+      exit;
+    }
+    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','product'=>$product]);  
+}
+
+else if ($input['type'] === "GetReviews"){
+    $product_id = $input["product_id"];
+    if (!$product_id) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id']);
+      exit;
+    }
+    $stmt = $db->prepare(
+      "SELECT r.review_id, r.product_id, r.user_id, r.text, r.rating, r.review_date,
+              u.name, u.surname
+       FROM reviews r
+       JOIN users u ON u.id = r.user_id
+       WHERE r.product_id = :pid
+       ORDER BY r.review_date DESC"
+    );
+    $stmt->execute([':pid'=>$product_id]);
+    $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','reviews'=>$reviews]);
+}
+
+else if ($input['type'] === "GetUserReview"){
+    $product_id = $input["product_id"];
+    $api_key = $input["apikey"];
+    if (!$product_id || !$api_key) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id or api_key']);
+      exit;
+    }
+    // First lookup user_id by api_key
+    $u = $db->prepare("SELECT id FROM users WHERE api_key = :key");
+    $u->execute([':key'=>$api_key]);
+    if ($u->rowCount()===0) {
+      http_response_code(401);
+      echo json_encode(['status'=>'error','message'=>'Invalid API key']);
+      exit;
+    }
+    $user_row = $u->fetch(PDO::FETCH_ASSOC);
+    // Now fetch their review
+    $stmt = $db->prepare(
+      "SELECT review_id, product_id, user_id, text, rating, review_date
+       FROM reviews
+       WHERE product_id = :pid
+         AND user_id    = :uid
+       LIMIT 1"
+    );
+    $stmt->execute([
+      ':pid'=> $product_id,
+      ':uid'=> $user_row['id']
+    ]);
+    if ($stmt->rowCount()===0) {
+      http_response_code(404);
+      echo json_encode(['status'=>'error','message'=>'No review found for this user/product']);
+      exit;
+    }
+    $review = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode(['status'=>'success','review'=>$review]);
+}
+
 else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
 {
     // 1) Authenticate
@@ -351,7 +532,7 @@ else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","Up
 
     exit;
 }
- 
+
 else {
     http_response_code(400);
     echo json_encode(["status"=> "error","message"=> "Invalid Request Type..."]);
