@@ -353,7 +353,7 @@ else if ($input['type'] === 'GetProducts') {
 
 else if ($input['type'] === "GetProduct") {
     $product_id = $input["product_id"];
-    $api_key    = $input["apikey"];  // You may want to validate this later
+    $api_key    = $input["apikey"];
 
     if (!$product_id) {
         http_response_code(400);
@@ -386,13 +386,24 @@ else if ($input['type'] === "GetProduct") {
     $imgStmt->execute([':pid' => $product_id]);
     $images = $imgStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3) Return combined response
+    // 3) Fetch all prices for that product
+    $priceStmt = $db->prepare(
+      "SELECT *
+       FROM price
+       WHERE product_id = :pid"
+    );
+    $priceStmt->execute([':pid' => $product_id]);
+    $prices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 4) Return combined response
     echo json_encode([
-        'status'  => 'success',
-        'product' => $product,
-        'images'  => $images
+        'status'   => 'success',
+        'product'  => $product,
+        'images'   => $images,
+        'prices'   => $prices
     ]);
 }
+
 
 else if ($input['type'] === "GetReviews"){
     $product_id = $input["product_id"];
