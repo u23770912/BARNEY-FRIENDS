@@ -2,7 +2,7 @@
 <template>
   <ClientOnly>
     <header class="bg-white border-b border-black px-8 py-4 flex items-center justify-between">
-      <!-- Hamburger (mobile only) -->
+      <!-- Hamburger -->
       <button @click="drawerOpen = !drawerOpen" class="text-black hover:text-green-600 p-2 -ml-2"
         aria-label="Toggle navigation">
         <svg v-if="!drawerOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-7 h-7" fill="none"
