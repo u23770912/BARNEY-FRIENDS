@@ -279,7 +279,7 @@ else if ($input['type'] === 'GetProducts') {
                     )
                 ) AS prices
             FROM 
-                products p
+                product p
             JOIN 
                 brand b ON p.brand_id = b.brand_id
             LEFT JOIN 
