@@ -61,12 +61,129 @@
           </span>
         </div>
 
-        <!-- Price comparison table (placeholder since not in API response) -->
-        <h2 class="text-xl font-semibold mb-3">Product Information</h2>
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <p><strong>Product ID:</strong> {{ product.product_id }}</p>
-          <p><strong>Brand ID:</strong> {{ product.brand_id }}</p>
-          <p><strong>Retailer ID:</strong> {{ product.retailer_id }}</p>
+        <!-- Price Comparison Section -->
+        <div class="mt-6">
+          <h2 class="text-xl font-semibold mb-4">Compare Prices</h2>
+          
+          <!-- Loading state for prices -->
+          <div v-if="pricesLoading" class="text-center py-6 text-gray-500">
+            Loading prices...
+          </div>
+          
+          <!-- No prices state -->
+          <div v-else-if="prices.length === 0" class="bg-gray-50 p-6 rounded-lg text-center text-gray-500">
+            <p>Price information not available</p>
+          </div>
+          
+          <!-- Prices table -->
+          <div v-else class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+            <div class="grid grid-cols-4 bg-gray-50 font-semibold text-gray-700 text-sm">
+              <div class="px-4 py-3 border-r">Store</div>
+              <div class="px-4 py-3 border-r">Price</div>
+              <div class="px-4 py-3 border-r">Stock</div>
+              <div class="px-4 py-3">Action</div>
+            </div>
+            
+            <div
+              v-for="(price, index) in sortedPrices"
+              :key="price.retailer_id"
+              :class="[
+                'grid grid-cols-4 border-t hover:bg-gray-50 transition-colors',
+                index === 0 ? 'bg-green-50 border-green-200' : ''
+              ]"
+            >
+              <!-- Store name with logo placeholder -->
+              <div class="px-4 py-4 flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  {{ getStoreInitials(price.retailer_name) }}
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">{{ price.retailer_name }}</div>
+                  <div v-if="index === 0" class="text-xs text-green-600 font-medium">Best Price!</div>
+                </div>
+              </div>
+              
+              <!-- Price -->
+              <div class="px-4 py-4 flex items-center">
+                <div>
+                  <div :class="[
+                    'text-lg font-bold',
+                    index === 0 ? 'text-green-600' : 'text-gray-900'
+                  ]">
+                    R{{ formatPrice(price.price) }}
+                  </div>
+                  <div v-if="index > 0 && prices.length > 1" class="text-xs text-gray-500">
+                    +R{{ (price.price - sortedPrices[0].price).toFixed(2) }} more
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Stock status -->
+              <div class="px-4 py-4 flex items-center">
+                <span :class="[
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                  price.availability > 0 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                ]">
+                  <div :class="[
+                    'w-1.5 h-1.5 rounded-full mr-1',
+                    price.availability > 0 ? 'bg-green-400' : 'bg-red-400'
+                  ]"></div>
+                  {{ price.availability > 0 ? `${price.availability} in stock` : 'Out of stock' }}
+                </span>
+              </div>
+              
+              <!-- Action button -->
+              <div class="px-4 py-4 flex items-center">
+                <a
+                  :href="getStoreLink(price.retailer_name, price.retailer_id)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :class="[
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all',
+                    price.availability > 0
+                      ? index === 0
+                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ]"
+                  :aria-disabled="price.availability <= 0"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  {{ price.availability > 0 ? 'View at Store' : 'Unavailable' }}
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Price insights -->
+          <div v-if="prices.length > 1" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <h3 class="font-medium text-blue-900 mb-1">Price Comparison Insights</h3>
+                <p class="text-sm text-blue-700">
+                  You can save <strong>R{{ (sortedPrices[sortedPrices.length - 1].price - sortedPrices[0].price).toFixed(2) }}</strong> 
+                  by choosing {{ sortedPrices[0].retailer_name }} over {{ sortedPrices[sortedPrices.length - 1].retailer_name }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="mt-8">
+          <h2 class="text-xl font-semibold mb-3">Product Information</h2>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p><strong>Product ID:</strong> {{ product.product_id }}</p>
+            <p><strong>Brand ID:</strong> {{ product.brand_id }}</p>
+            <p><strong>Retailer ID:</strong> {{ product.retailer_id }}</p>
+          </div>
         </div>
 
         <!-- Additional Images -->
@@ -210,7 +327,9 @@
   const product = ref(null);
   const images = ref([]);
   const reviews = ref([]);
+  const prices = ref([]);
   const reviewsLoading = ref(false);
+  const pricesLoading = ref(false);
   const isWishlisted = ref(false);
 
   // Computed property to get the main product image
@@ -221,7 +340,10 @@
     return 'https://via.placeholder.com/400x400?text=No+Image'; // Fallback image
   });
 
-  // Computed property for average rating
+  // Computed property for sorted prices (lowest first)
+  const sortedPrices = computed(() => {
+    return [...prices.value].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+  });
   const averageRating = computed(() => {
     if (reviews.value.length === 0) return 0;
     const total = reviews.value.reduce((sum, review) => sum + parseInt(review.rating), 0);
@@ -295,6 +417,31 @@
     }
   }
 
+  // Fetch prices for the product
+  async function fetchPrices() {
+    if (!id) return;
+
+    pricesLoading.value = true;
+    try {
+      const result = await useApi({
+        type: 'GetPrices',
+        product_id: id.toString()
+      });
+
+      if (result.status === 'success') {
+        prices.value = result.prices || [];
+      } else {
+        console.error('Failed to load prices:', result.message);
+        prices.value = [];
+      }
+    } catch (err) {
+      console.error('Prices API error:', err.message);
+      prices.value = [];
+    } finally {
+      pricesLoading.value = false;
+    }
+  }
+
   function toggleWishlist() {
     isWishlisted.value = !isWishlisted.value;
   }
@@ -302,6 +449,7 @@
   onMounted(async () => {
     await fetchProduct();
     await fetchReviews();
+    await fetchPrices();
   });
 </script>
 
