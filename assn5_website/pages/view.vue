@@ -63,18 +63,15 @@
           <tbody>
             <tr
               v-for="item in product.prices"
-              :key="item.store"
+              :key="item.retailer_name"
               class="border-t hover:bg-gray-50"
             >
-              <td class="py-2 px-3">{{ item.store }}</td>
-              <td class="py-2 px-3 font-semibold">{{ item.price }}</td>
+              <td class="py-2 px-3">{{ item.retailer_name }}</td>
+              <td class="py-2 px-3 font-semibold">R{{ Math.round(item.price / 100) * 100 }}</td>
               <td class="py-2 px-3">
-                <NuxtLink
-                  :to="item.link"
-                  target="_blank"
-                  class="text-green-600 hover:underline"
-                  >Visit&nbsp;Store</NuxtLink
-                >
+                <span :class="item.availability > 0 ? 'text-green-600' : 'text-red-500'">
+                  {{ item.availability > 0 ? 'In Stock' : 'Out of Stock' }}
+                </span>
               </td>
             </tr>
           </tbody>
@@ -100,54 +97,42 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+  import { ref, onMounted } from 'vue';
+  import { useRoute } from 'vue-router';
+  import { useApi } from '~/composables/useApi';
 
-// --- sample data (match index.vue) ------------------------------------
-const sampleProducts = [
-  {
-    id: 0,
-    name: 'Nike x Drake NOCTA Puffer Jacket “Bright Yellow"',
-    image:
-      'https://sneakertwenty4.com/wp-content/uploads/2024/04/My-project-1-14-2-Recovered.jpg0_.jpg',
-    prices: [
-      { store: 'Zara', price: 3000, link: '#' },
-      { store: 'Superbalist', price: 2200, link: '#' }
-    ],
-    reviews: [
-      { name: 'Thabo M.', rating: 5, comment: 'Incredible quality!' },
-      { name: 'Aisha P.', rating: 4, comment: 'Love the colour.' }
-    ]
-  },
-  {
-    id: 1,
-    name: "Jordan Women's 1 Low SE Sail/Seafoam Sneaker",
-    image:
-      'https://thefoschini.vtexassets.com/arquivos/ids/183732328-1200-1600?v=638803054822000000&width=1200&height=1600&aspect=true',
-    prices: [
-      { store: 'CourtOrder', price: 2300, link: '#' },
-      { store: 'Shesha', price: 1800, link: '#' }
-    ],
-    reviews: [
-      { name: 'Liam J.', rating: 3, comment: 'Shipping was slow.' }
-    ]
+  const route = useRoute();
+  const id = Number(route.query.id || 0);
+  const product = ref(null);
+  const isWishlisted = ref(false);
+
+  // Fetch product via local proxy
+  async function fetchProduct() {
+    if (!id) return;
+
+    try {
+      const result = await useApi({
+        type: 'GetProduct',
+        id
+      });
+
+      if (result.status === 'success' && result.data?.product) {
+        product.value = result.data.product;
+      } else {
+        console.error('Failed to load product:', result.message);
+      }
+    } catch (err) {
+      console.error('API error:', err.message);
+    }
   }
-];
-// ----------------------------------------------------------------------
 
-const route = useRoute();
-const id = Number(route.params.id || 0);
+  function toggleWishlist() {
+    isWishlisted.value = !isWishlisted.value;
+  }
 
-const product = computed(() => sampleProducts.find((p) => p.id === id) || sampleProducts[0]);
-
-// dummy wishlist toggle
-import { ref } from 'vue';
-const isWishlisted = ref(false);
-
-function toggleWishlist() {
-  isWishlisted.value = !isWishlisted.value;
-}
+  onMounted(fetchProduct);
 </script>
+
 
 <style scoped>
 .product-view table th,

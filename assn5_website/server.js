@@ -33,6 +33,23 @@ app.post('/api', async (req, res) => {
   }
 });
 
+// server.js
+app.post('/api/product', async (req, res) => {
+  const { id } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ status: 'error', message: 'Missing product ID' });
+  }
+
+  try {
+    const result = await sendApiRequest({ type: 'GetProduct', id });
+    res.json(result);
+  } catch (err) {
+    console.error('Error fetching product:', err.message);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Local API server running at http://localhost:${PORT}`);
