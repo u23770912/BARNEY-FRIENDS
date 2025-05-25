@@ -389,7 +389,7 @@ else if ($input['type'] === "GetUserReview"){
       exit;
     }
     // First lookup user_id by api_key
-    $u = $db->prepare("SELECT id FROM users WHERE api_key = :key LIMIT 1");
+    $u = $db->prepare("SELECT id FROM users WHERE api_key = :key");
     $u->execute([':key'=>$api_key]);
     if ($u->rowCount()===0) {
       http_response_code(401);
