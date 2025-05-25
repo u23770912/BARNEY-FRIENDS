@@ -46,6 +46,7 @@
   import { ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { useApi } from '~/composables/useApi';
+  import { useAuth } from '~/composables/useAuth';
 
   const email = ref('');
   const password = ref('');
@@ -53,33 +54,39 @@
   const success = ref('');
   const router = useRouter();
 
+  const { isLoggedIn , refreshAuth } = useAuth();
+
   async function onSubmit() {
   error.value = '';
   success.value = '';
 
-    try {
-      const data = await useApi({
-        type: 'Login',
-        email: email.value,
-        password: password.value,
-      });
+  try {
+    const data = await useApi({
+      type: 'Login',
+      email: email.value,
+      password: password.value,
+    });
 
-      console.log('API Response:', data); // Debugging line
+    console.log('API Response:', data);
 
-      if (data.status === 'success') {
-        success.value = 'Login successful! Redirecting...';
-        setTimeout(() => {
-          router.push('/');
-        }, 1000);
-      } else {
-        error.value = data.message || 'Login failed';
-      }
+    if (data.status === 'success' && data.data?.apikey) {
+     
+      localStorage.setItem('apiKey', data.data.apikey);
 
-    } catch (err) {
-      error.value = 'Network error. Please try again.';
+      refreshAuth();
+
+      success.value = 'Login successful! Redirecting...';
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+    } else {
+      error.value = data.message || 'Login failed';
     }
 
+  } catch (err) {
+    error.value = 'Network error. Please try again.';
   }
+}
 </script>
 
 <style scoped>

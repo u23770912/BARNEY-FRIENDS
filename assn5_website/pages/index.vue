@@ -12,15 +12,16 @@
     <section class="px-6 md:px-16 py-16">
       <h2 class="text-3xl font-bold mb-10 border-l-4 border-green-500 pl-4">Featured Products</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+      <div v-if="loading" class="text-center py-10">Loading products...</div>
+      <div v-else-if="products.length === 0 && !loading" class="text-center py-10 text-gray-500">
+        No products found.
+      </div>
+
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
         <ProductCard
-          v-for="(product, index) in products"
-          :key="index"
-          :image="product.image"
-          :name="product.name"
-          :originalPrice="product.originalPrice"
-          :discountedPrice="product.discountedPrice"
-          :stores="product.stores"
+          v-for="product in products"
+          :key="product.product_id"
+          :product="product"
         />
       </div>
     </section>
@@ -43,7 +44,7 @@
       <div class="text-center">
         <NuxtLink to="/dashboard">
           <button class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300">
-          View Dashboard Analytics
+            View Dashboard Analytics
           </button>
         </NuxtLink>
       </div>
@@ -52,27 +53,12 @@
 </template>
 
 <script setup>
-import ProductCard from '~/components/productcard.vue'
-import ReviewCard from '~/components/reviewcard.vue'
+import ProductCard from '~/components/productcard.vue';
+import ReviewCard from '~/components/reviewcard.vue';
+import { useProducts } from '~/composables/useProducts';
 
-const products = [
-  {
-    name: "Nike x Drake NOCTA Puffer Jacket ‘Bright Yellow",
-    image: 'https://sneakertwenty4.com/wp-content/uploads/2024/04/My-project-1-14-2-Recovered.jpg0_.jpg',
-    originalPrice: 3000,
-    discountedPrice: 2200,
-    stores: ['Zara', 'Superbalist']
-  },
-  {
-    name: "Jordan Women's 1 Low SE Sail/Seafoam Sneaker",
-    image: 'https://thefoschini.vtexassets.com/arquivos/ids/183732328-1200-1600?v=638803054822000000&width=1200&height=1600&aspect=true',
-    originalPrice: 2300,
-    discountedPrice: 1800,
-    stores: ['CourtOrder', 'Shesha']
-  },
-  // More sample products can be added
-]
-
+const loading = ref(true);
+const products = ref([]);
 const reviews = [
   {
     name: 'Thabo M.',
@@ -88,7 +74,14 @@ const reviews = [
     name: 'Liam J.',
     rating: 3,
     comment: 'Product was okay, but shipping took a while and packaging was a bit damaged.'
-  },
-  // More sample reviews can be added
-]
+  }
+];
+
+// Fetch real products
+const loadProducts = async () => {
+  products.value = await useProducts();
+  loading.value = false;
+};
+
+loadProducts();
 </script>
