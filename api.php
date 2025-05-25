@@ -338,26 +338,45 @@ else if ($input['type'] === 'GetProducts') {
 
 else if ($input['type'] === "GetProduct") {
     $product_id = $input["product_id"];
-    $api_key = $input["apikey"];
+    $api_key    = $input["apikey"];  // You may want to validate this later
+
     if (!$product_id) {
-      http_response_code(400);
-      echo json_encode(['status'=>'error','message'=>'Missing product_id']);
-      exit;
+        http_response_code(400);
+        echo json_encode(['status'=>'error','message'=>'Missing product_id']);
+        exit;
     }
+
+    // 1) Fetch the product
     $stmt = $db->prepare(
       "SELECT product_id, brand_id, description, availability, retailer_id
        FROM product
        WHERE product_id = :pid
        LIMIT 1"
     );
-    $stmt->execute([':pid'=>$product_id]);
-    if ($stmt->rowCount()===0) {
-      http_response_code(404);
-      echo json_encode(['status'=>'error','message'=>'Product not found']);
-      exit;
+    $stmt->execute([':pid' => $product_id]);
+
+    if ($stmt->rowCount() === 0) {
+        http_response_code(404);
+        echo json_encode(['status'=>'error','message'=>'Product not found']);
+        exit;
     }
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo json_encode(['status'=>'success','product'=>$product]);  
+
+    // 2) Fetch all images for that product
+    $imgStmt = $db->prepare(
+      "SELECT *
+       FROM image
+       WHERE product_id = :pid"
+    );
+    $imgStmt->execute([':pid' => $product_id]);
+    $images = $imgStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 3) Return combined response
+    echo json_encode([
+        'status'  => 'success',
+        'product' => $product,
+        'images'  => $images
+    ]);
 }
 
 else if ($input['type'] === "GetReviews"){
