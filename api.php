@@ -8,7 +8,8 @@ ini_set('display_errors', 1);
 header("Content-Type: application/json");
 
 require_once __DIR__ . '/ASS5/php/config.php';
-require_once __DIR__ . '/ASS5/php/user.php'; 
+require_once __DIR__ . '/ASS5/php/user.php';
+require_once __DIR__ . '/ASS5/php/review.php';
 
 // Initialize database connection using PDO
 $database = Database::getInstance();
@@ -41,10 +42,14 @@ else if ($input['type'] === "Register") {
         $result = $user->register($name, $surname, $email, $password);
 
         if ($result['status'] === "success") {
-            echo json_encode([
+             echo json_encode([
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
-                "data" => ["apikey" => $result['apikey']]
+                "data" => [
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
+                ]
             ]);
         } else {
             http_response_code(400);
@@ -78,9 +83,9 @@ else if ($input['type'] === "Login") {
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
                 "data" => [
-                    "apikey" => $result['apikey'],
-                    "userid" => $result['id'],
-                    "name"   => $result['name']
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
                 ]
             ]);
         } else {
@@ -336,18 +341,30 @@ else if ($input['type'] === 'GetProducts') {
 else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
 {
     // 1) Authenticate
-    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-    $auth = new User($db);
-    if (!$auth->authenticateApiKey($apiKey)) {
-        http_response_code(401);
+    $userId = $input['user_id'] ?? null;
+    $apiKey = $input['apikey']  ?? '';
+    if (! $userId) {
+        http_response_code(422);
         echo json_encode([
             "status"  => "error",
-            "message" => "Unauthorized"
+            "message" => "user_id and apikey are required"
         ]);
         exit;
     }
-    $currentUserId = $auth->getUserId();
-    $svc = new Review($db, $currentUserId);
+
+    $authStmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
+    $authStmt->execute([$userId, $apiKey]);
+
+    if ($authStmt->rowCount() === 0) {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => "error",
+            "message" => "Invalid API key or user ID"
+        ]);
+        exit;
+    }
+
+    $svc = new Review($db, (int)$userId);
 
     // 2) Dispatch
     switch ($input['type']) {

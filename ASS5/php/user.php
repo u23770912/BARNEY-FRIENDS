@@ -33,18 +33,18 @@ class User {
         $hashedPassword = hash('sha256', $password . $salt);      // SHA-256 + salt
         
         // 5) Generate API key
-        $apiKey = bin2hex(random_bytes(16));                      // 32 hex chars
+        $apikey = bin2hex(random_bytes(16));                      // 32 hex chars
         
         // 6) Insert user
         $insertSql  = "INSERT INTO users (name, surname, email, password, salt, api_key)
-                       VALUES (:name, :surname, :email, :password, :salt, :api_key)";
+                       VALUES (:name, :surname, :email, :password, :salt, :apikey)";
         $insertStmt = $this->conn->prepare($insertSql);
         $insertStmt->bindParam(':name',     $name);
         $insertStmt->bindParam(':surname',  $surname);
         $insertStmt->bindParam(':email',    $email);
         $insertStmt->bindParam(':password', $hashedPassword);
         $insertStmt->bindParam(':salt',     $salt);
-        $insertStmt->bindParam(':api_key',  $apiKey);
+        $insertStmt->bindParam(':apikey',  $apikey);
         
         try {
             $insertStmt->execute();
@@ -58,7 +58,7 @@ class User {
                     'name'     => $name,
                     'surname'  => $surname,
                     'email'    => $email,
-                    'api_key'  => $apiKey
+                    'apikey'  => $apikey
                 ]
             ];
         } catch (PDOException $e) {
@@ -108,7 +108,7 @@ class User {
                 'name'     => $row['name'],
                 'surname'  => $row['surname'],
                 'email'    => $email,
-                'api_key'  => $row['api_key']
+                'apikey'  => $row['api_key']
             ]
         ];
     }
