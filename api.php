@@ -337,6 +337,8 @@ else if ($input['type'] === 'GetProducts') {
 }
 
 else if ($input['type'] === "GetProduct") {
+    $product_id = $input["product_id"];
+    $api_key = $input["apikey"];
     if (!$product_id) {
       http_response_code(400);
       echo json_encode(['status'=>'error','message'=>'Missing product_id']);
@@ -359,6 +361,7 @@ else if ($input['type'] === "GetProduct") {
 }
 
 else if ($input['type'] === "GetReviews"){
+    $product_id = $input["product_id"];
     if (!$product_id) {
       http_response_code(400);
       echo json_encode(['status'=>'error','message'=>'Missing product_id']);
@@ -378,6 +381,8 @@ else if ($input['type'] === "GetReviews"){
 }
 
 else if ($input['type'] === "GetUserReview"){
+    $product_id = $input["product_id"];
+    $api_key = $input["apikey"];
     if (!$product_id || !$api_key) {
       http_response_code(400);
       echo json_encode(['status'=>'error','message'=>'Missing product_id or api_key']);
