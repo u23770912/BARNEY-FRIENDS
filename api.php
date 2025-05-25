@@ -258,7 +258,7 @@ else if ($input['type'] === 'GetWishlist') {
 
 else if ($input['type'] === 'GetProducts') {
     try {
-        // Get all products with their details
+        // Get basic product info
         $query = "
             SELECT 
                 p.product_id,
@@ -268,28 +268,13 @@ else if ($input['type'] === 'GetProducts') {
                 b.brand_name,
                 i.url_1 AS image_url_1,
                 i.url_2 AS image_url_2,
-                i.url_3 AS image_url_3,
-                GROUP_CONCAT(
-                    JSON_OBJECT(
-                        'price_id', pr.price_id,
-                        'retailer_id', pr.retailer_id,
-                        'retailer_name', r.retailer_name,
-                        'price', pr.price,
-                        'availability', pr.availability
-                    )
-                ) AS prices
+                i.url_3 AS image_url_3
             FROM 
                 product p
             JOIN 
                 brand b ON p.brand_id = b.brand_id
             LEFT JOIN 
                 image i ON p.product_id = i.product_id
-            LEFT JOIN 
-                price pr ON p.product_id = pr.product_id
-            LEFT JOIN 
-                retailer r ON pr.retailer_id = r.retailer_id
-            GROUP BY 
-                p.product_id
             ORDER BY 
                 p.product_id
         ";
@@ -298,21 +283,46 @@ else if ($input['type'] === 'GetProducts') {
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Process the results to format prices as JSON arrays
-        $formattedProducts = array_map(function($product) {
-            // Convert the GROUP_CONCAT prices string to an array
-            $product['prices'] = $product['prices'] ? 
-                array_map('json_decode', explode(',', $product['prices'])) : 
-                [];
+        // Get all prices with retailer info
+        $priceQuery = "
+            SELECT 
+                pr.product_id,
+                pr.price_id,
+                pr.retailer_id,
+                r.retailer_name,
+                pr.price,
+                pr.availability
+            FROM 
+                price pr
+            JOIN 
+                retailer r ON pr.retailer_id = r.retailer_id
+        ";
+        $priceStmt = $db->prepare($priceQuery);
+        $priceStmt->execute();
+        $allPrices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organize prices by product_id
+        $pricesByProduct = [];
+        foreach ($allPrices as $price) {
+            $pricesByProduct[$price['product_id']][] = [
+                'price_id' => $price['price_id'],
+                'retailer_id' => $price['retailer_id'],
+                'retailer_name' => $price['retailer_name'],
+                'price' => (float)$price['price'],
+                'availability' => (int)$price['availability']
+            ];
+        }
+
+        // Combine products with their prices
+        $formattedProducts = array_map(function($product) use ($pricesByProduct) {
+            $product['prices'] = $pricesByProduct[$product['product_id']] ?? [];
             
-            // Create an array of non-null image URLs
             $product['images'] = array_filter([
                 $product['image_url_1'],
                 $product['image_url_2'],
                 $product['image_url_3']
             ]);
             
-            // Remove the individual image URL fields
             unset($product['image_url_1'], $product['image_url_2'], $product['image_url_3']);
             
             return $product;
