@@ -370,8 +370,12 @@ else if ($input['type'] === 'GetAllProducts') {
         echo json_encode(['status'=>'error','message'=>$e->getMessage()]);
     } catch (PDOException $e) {
         http_response_code(500);
-        echo json_encode(['status'=>'error','message'=>'Database error']);
-    }
+        echo json_encode([
+            'status'  => 'error',
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
+    exit;
+}
 }
 
 else if ($input['type'] === "GetProduct") {
