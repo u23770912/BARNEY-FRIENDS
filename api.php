@@ -356,14 +356,15 @@ else if ($input['type'] === 'GetProducts') {
 
 else if ($input['type'] === 'GetAllProducts') {
     try {
-        $search  = trim($input['search'] ?? '');
-        $sort    = $input['sort']  ?? 'product_id';
-        $order   = $input['order'] ?? 'ASC';
+        $search = trim($input['search'] ?? '');
+        $sort   = $input['sort']  ?? 'product_id';
+        $order  = $input['order'] ?? 'ASC';
+        $limit  = isset($input['limit']) ? (int)$input['limit'] : 10;
 
-        $productService = new Product($db);
-        $products = $productService->getAllProducts($search, $sort, $order);
+        $svc = new Product($db);
+        $list = $svc->getAllProducts($search, $sort, $order, $limit);
 
-        echo json_encode(['status'=>'success','products'=>$products]);
+        echo json_encode(['status'=>'success','products'=>$list]);
     } catch (InvalidArgumentException $e) {
         http_response_code(400);
         echo json_encode(['status'=>'error','message'=>$e->getMessage()]);
@@ -371,10 +372,9 @@ else if ($input['type'] === 'GetAllProducts') {
         http_response_code(500);
         echo json_encode([
             'status'  => 'error',
-            'message' => 'Database error: ' . $e->getMessage()
+            'message' => 'Database error: '.$e->getMessage()
         ]);
-    exit;
-}
+    }
 }
 
 else if ($input['type'] === "GetProduct") {
