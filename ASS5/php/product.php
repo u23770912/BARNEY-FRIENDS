@@ -1,8 +1,8 @@
 <?php
 class Product {
-     private $conn;
+    private PDO $conn;
 
-    public function __construct($dbConnection) {
+    public function __construct(PDO $dbConnection) {
         $this->conn = $dbConnection;
     }
 
@@ -20,7 +20,7 @@ class Product {
         string $search   = '',
         string $sortKey  = 'product_id',
         string $order    = 'ASC',
-        int    $limit    = 10
+        int    $limit    = 20
     ): array {
         // 1) Whitelist & map sort keys
         $sortMap = [
@@ -50,7 +50,7 @@ class Product {
           FROM product p
           LEFT JOIN (
             SELECT product_id, MIN(price) AS price
-            FROM price
+            FROM price pr
             GROUP BY product_id
           ) pr ON pr.product_id = p.product_id
           LEFT JOIN brand   b ON b.brand_id    = p.brand_id
