@@ -1,9 +1,14 @@
 <template>
   <div class="product-card">
     <NuxtLink :to="`/view?id=${product.product_id}`" class="block bg-white border border-gray-200 rounded-2xl shadow hover:shadow-lg transition p-4 w-full max-w-xs cursor-pointer">
-      <!-- Product Image -->
-      <img :src="product.images[0]" alt="Product Image" class="w-full h-60 object-cover rounded-xl mb-4" />
+    <!-- Product Image -->
 
+        <img
+          :src="(product.images && product.images.length > 0) ? product.images[0].url_1 : '/default-image.jpg'"
+          alt="Product Image"
+          class="w-full h-60 object-cover rounded-xl mb-4"
+        /> 
+   
       <!-- Product Name -->
       <div class="text-black font-bold text-lg mb-1">{{ product.description }}</div>
 
