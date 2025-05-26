@@ -14,8 +14,8 @@ class Product {
         // 1) Whitelist & map sort keys
         $sortMap = [
           'product_id'   => 'p.product_id',
-          'brand'        => 'b.name',
-          'retailer'     => 'r.name',
+          'brand'        => 'b.brand_name',
+          'retailer'     => 'r.retailer_name',
           'availability' => 'p.availability',
           'price'        => 'pr.price'
         ];
