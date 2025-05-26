@@ -8,7 +8,7 @@ export const useProducts = async () => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ type: 'GetAllProducts' })
+      body: JSON.stringify({ type: 'GetProducts' })
     });
 
     if (!res.ok) {

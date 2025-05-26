@@ -35,10 +35,10 @@ export const useReview = async (reviewData) => {
   }
 };
 
-// Alternative function to use the existing useApi composable
-export const createReviewWithApi = async (reviewData) => {
-  return await useApi({
-    type: 'CreateReview',
-    ...reviewData
-  });
-};
+// // Alternative function to use the existing useApi composable
+// export const createReviewWithApi = async (reviewData) => {
+//   return await useApi({
+//     type: 'CreateReview',
+//     ...reviewData
+//   });
+// };
