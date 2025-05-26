@@ -12,6 +12,7 @@ require_once __DIR__ . '/ASS5/php/user.php';
 require_once __DIR__ . '/ASS5/php/product.php';
 require_once __DIR__ . '/ASS5/php/user.php';
 require_once __DIR__ . '/ASS5/php/review.php';
+require_once __DIR__ . '/ASS5/php/recommend.php';
 
 
 // Initialize database connection using PDO
@@ -587,6 +588,12 @@ else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","Up
     }
 
     exit;
+}
+
+else if ($input['type'] === 'GetRecommendations') {
+  $rec = new Recommender($db);
+  $list = $rec->recommendForUser($userId);
+  echo json_encode(['status'=>'success','products'=>$list]);
 }
 
 else {
