@@ -1,8 +1,8 @@
 <?php
 class Product {
-    private PDO $conn;
+     private $conn;
 
-    public function __construct(PDO $dbConnection) {
+    public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
 
@@ -20,7 +20,7 @@ class Product {
         string $search   = '',
         string $sortKey  = 'product_id',
         string $order    = 'ASC',
-        int    $limit    = 20
+        int    $limit    = 10
     ): array {
         // 1) Whitelist & map sort keys
         $sortMap = [
