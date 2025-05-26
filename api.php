@@ -359,7 +359,6 @@ else if ($input['type'] === 'GetAllProducts') {
         $search  = trim($input['search'] ?? '');
         $sort    = $input['sort']  ?? 'product_id';
         $order   = $input['order'] ?? 'ASC';
-        $limit   = isset($input['limit']) ? (int)$input['limit'] : 10;
 
         $productService = new Product($db);
         $products = $productService->getAllProducts($search, $sort, $order, $limit);

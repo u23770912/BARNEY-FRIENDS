@@ -19,8 +19,8 @@ class Product {
     public function getAllProducts(
         string $search   = '',
         string $sortKey  = 'product_id',
-        string $order    = 'ASC',
-        int    $limit    = 20
+        string $order    = 'ASC'
+
     ): array {
         // 1) Whitelist & map sort keys
         $sortMap = [
@@ -78,7 +78,7 @@ class Product {
         foreach ($params as $key => $val) {
             $stmt->bindValue($key, $val, PDO::PARAM_STR);
         }
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(PDO::PARAM_INT);
         $stmt->execute();
 
         // 6) Fetch all products
