@@ -17,41 +17,17 @@
         <div class="flex items-start justify-between gap-4 mb-4">
           <h1 class="text-3xl font-bold leading-tight">{{ product.description || 'Product' }}</h1>
 
+          <div class="absolute right-90">
           <!-- Wishlist heart -->
-          <button
-            @click="toggleWishlist"
-            class="text-red-500 hover:text-red-600 transition-colors"
-            aria-label="Add to wishlist"
-          >
-            <svg
-              v-if="isWishlisted"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              class="w-8 h-8"
-            >
-              <path
-                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42
-                   3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3
-                   19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-              />
-            </svg>
-            <svg
-              v-else
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              class="w-8 h-8"
-            >
-              <path
-                d="M12.76 3.62l.24.26.24-.26C14.55 2.41 16.45 2 18.24 2 21.47 2
-                  24 4.56 24 8c0 3.87-3.4 7.06-9.55 11.73L12 22l-2.45-2.27C3.4
-                  15.06 0 11.87 0 8 0 4.56 2.53 2 5.76 2c1.79 0 3.69.41 5 1.62z"
-              />
-            </svg>
-          </button>
+            <button @click="toggleWishlist" class="text-red-500 hover:text-red-600 transition-colors" aria-label="Add to wishlist">
+              <svg v-if="isWishlisted" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-7 h-7">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.423 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-7 h-7">
+                <path d="M12 21.35l.24-.2C14.76 18.69 18.2 15.6 18.2 8.5c0-3.78-3.4-6.86-8.55-11.54L12 21.35z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <!-- Availability Status -->
@@ -321,9 +297,11 @@
   import { ref, computed, onMounted } from 'vue';
   import { useRoute } from 'vue-router';
   import { useApi } from '~/composables/useApi';
+  import { useAuth } from '~/composables/useAuth';
 
   const route = useRoute();
   const id = Number(route.query.id || 0);
+  const { user, apiKey, isLoggedIn } = useAuth();
   const product = ref(null);
   const images = ref([]);
   const reviews = ref([]);
@@ -442,14 +420,60 @@
     }
   }
 
-  function toggleWishlist() {
-    isWishlisted.value = !isWishlisted.value;
+async function toggleWishlist() {
+  if (!isLoggedIn.value) {
+    alert('Please log in first');
+    return;
   }
+
+  try {
+    const type = isWishlisted.value ? 'RemoveFromWishlist' : 'AddToWishlist';
+
+    const result = await useApi({
+      type,
+      user_id: user.value?.id || 1,
+      product_id: id,
+      apikey: apiKey.value
+    });
+
+    if (result.status === 'success') {
+      isWishlisted.value = !isWishlisted.value;
+      alert(result.data.message || (isWishlisted.value ? 'Added to wishlist' : 'Removed from wishlist'));
+    } else if (result.message.includes('already')) {
+      isWishlisted.value = true;
+      alert('Already in your wishlist');
+    } else {
+      throw new Error(result.message || 'Failed to update wishlist');
+    }
+  } catch (err) {
+    console.error('Wishlist error:', err.message);
+    alert(`Could not update wishlist: ${err.message}`);
+  }
+}
+
+async function checkWishlistStatus() {
+  if (!isLoggedIn.value || !id) return;
+
+  try {
+    const result = await useApi({
+      type: 'GetWishlist',
+      user_id: user.value?.id || 1,
+      apikey: apiKey.value
+    });
+
+    if (result.status === 'success' && result.data?.items?.length > 0) {
+      isWishlisted.value = result.data.items.some(item => item.product_id == id);
+    }
+  } catch (err) {
+    console.error('Error checking wishlist status:', err.message);
+  }
+}
 
   onMounted(async () => {
     await fetchProduct();
     await fetchReviews();
     await fetchPrices();
+    await checkWishlistStatus();
   });
 </script>
 

@@ -3,29 +3,50 @@ import { ref, watch } from 'vue';
 const apiKey = ref(null);
 const isLoggedIn = ref(false);
 
-// Only run once on client
-if (process.client) {
-  apiKey.value = localStorage.getItem('apiKey');
-  isLoggedIn.value = !!apiKey.value;
+// Store full user info if needed elsewhere
+const user = ref(null);
 
-  watch(apiKey, (newKey) => {
-    if (newKey) {
-      localStorage.setItem('apiKey', newKey);
-    } else {
-      localStorage.removeItem('apiKey');
-    }
-    isLoggedIn.value = !!newKey; // keep isLoggedIn synced
-  });
+if (process.client) {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    const parsedUser = JSON.parse(storedUser);
+    apiKey.value = parsedUser.apikey;
+    isLoggedIn.value = !!parsedUser.apikey;
+    user.value = parsedUser;
+  }
 }
+
+watch(apiKey, (newKey) => {
+  if (newKey) {
+    const currentUser = {
+      ...user.value,
+      apikey: newKey
+    };
+    localStorage.setItem('user', JSON.stringify(currentUser));
+  } else {
+    localStorage.removeItem('user');
+  }
+});
 
 const logout = () => {
   apiKey.value = null;
+  isLoggedIn.value = false;
+  user.value = null;
 };
 
 const refreshAuth = () => {
   if (process.client) {
-    apiKey.value = localStorage.getItem('apiKey');
-    isLoggedIn.value = !!apiKey.value;
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      apiKey.value = parsedUser.apikey;
+      isLoggedIn.value = !!parsedUser.apikey;
+      user.value = parsedUser;
+    } else {
+      apiKey.value = null;
+      isLoggedIn.value = false;
+      user.value = null;
+    }
   }
 };
 
@@ -33,7 +54,8 @@ export const useAuth = () => {
   return {
     apiKey,
     isLoggedIn,
+    user,
     logout,
-    refreshAuth,
+    refreshAuth
   };
 };
