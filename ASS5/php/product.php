@@ -5,17 +5,6 @@ class Product {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
-
-    /**
-     * Fetch a page of products with optional fuzzy search across description,
-     * brand name and retailer name; sorting; and limit.
-     *
-     * @param string $search   The search term (empty = no filter)
-     * @param string $sortKey  One of: product_id, brand, retailer, availability, price
-     * @param string $order    ASC or DESC
-     * @param int    $limit    Max rows to return
-     * @return array           List of products as associative arrays
-     */
     public function getAllProducts(
         string $search   = '',
         string $sortKey  = 'product_id',
@@ -70,8 +59,7 @@ class Product {
             $params[':search'] = "%{$search}%";
         }
 
-        // 4) Append ORDER BY and LIMIT
-        $sql .= " ORDER BY {$sortExpr} {$order} LIMIT :limit";
+        $sql .= " ORDER BY {$sortExpr} {$order}";
 
         // 5) Prepare, bind, execute
         $stmt = $this->conn->prepare($sql);
