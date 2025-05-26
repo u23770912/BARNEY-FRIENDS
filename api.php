@@ -338,11 +338,13 @@ else if ($input['type'] === 'GetProducts') {
 
 else if ($input['type'] === 'GetAllProducts') {
     try {
+        // 1) Read & sanitize inputs
         $search = trim($input['search'] ?? '');
         $sort   = $input['sort']  ?? 'product_id';
         $order  = strtoupper($input['order'] ?? 'ASC');
-        $limit  = isset($input['limit']) ? (int)$input['limit'] : 30;
+        $limit  = isset($input['limit']) ? (int)$input['limit'] : 10;
 
+        // 2) Validate sort field & order
         $allowedSortFields = ['product_id','brand_id','availability','retailer_id'];
         if (!in_array($sort, $allowedSortFields, true)) {
             http_response_code(400);
@@ -351,22 +353,66 @@ else if ($input['type'] === 'GetAllProducts') {
         }
         $order = ($order === 'DESC') ? 'DESC' : 'ASC';
 
+        // 3) Build search array for fuzzy matching
         $searchArr = [];
         if ($search !== '') {
             $searchArr['description'] = $search;
         }
 
-        // 4. Fetch products
+        // 4) Fetch products
         $productService = new Product($db);
         $products = $productService->getProducts(
-            $searchArr,  
-            $sort,         
-            $order,        
-            $limit,       
-            ['*'],         
-            true          
+            $searchArr,
+            $sort,
+            $order,
+            $limit,
+            ['*'],
+            true
         );
 
+        // If no products, return early
+        if (empty($products)) {
+            echo json_encode(['status'=>'success','products'=>[]]);
+            exit;
+        }
+
+        // 5) Extract IDs
+        $ids = array_column($products, 'product_id');
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        // 6) Batch-fetch images
+        $imgStmt = $db->prepare(
+          "SELECT * FROM image WHERE product_id IN ($placeholders)"
+        );
+        $imgStmt->execute($ids);
+        $allImages = $imgStmt->fetchAll(PDO::FETCH_ASSOC);
+        // group by product_id
+        $imagesByProduct = [];
+        foreach ($allImages as $img) {
+            $imagesByProduct[$img['product_id']][] = $img;
+        }
+
+        // 7) Batch-fetch prices
+        $priceStmt = $db->prepare(
+          "SELECT * FROM price WHERE product_id IN ($placeholders)"
+        );
+        $priceStmt->execute($ids);
+        $allPrices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
+        // group by product_id
+        $pricesByProduct = [];
+        foreach ($allPrices as $pr) {
+            $pricesByProduct[$pr['product_id']][] = $pr;
+        }
+
+        // 8) Attach images & prices to each product
+        foreach ($products as &$product) {
+            $pid = $product['product_id'];
+            $product['images'] = $imagesByProduct[$pid] ?? [];
+            $product['prices'] = $pricesByProduct[$pid] ?? [];
+        }
+        unset($product); // break reference
+
+        // 9) Return results
         echo json_encode([
             'status'   => 'success',
             'products' => $products
