@@ -475,7 +475,7 @@ else if ($input['type'] === "GetUserReview"){
        FROM reviews
        WHERE product_id = :pid
          AND user_id    = :uid
-       LIMIT 1"
+        "
     );
     $stmt->execute([
       ':pid'=> $product_id,
