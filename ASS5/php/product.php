@@ -1,15 +1,26 @@
 <?php
 class Product {
-    private $conn;
+    private PDO $conn;
 
-    public function __construct($dbConnection) {
+    public function __construct(PDO $dbConnection) {
         $this->conn = $dbConnection;
     }
+
+    /**
+     * Fetch a page of products with optional fuzzy search across description,
+     * brand name and retailer name; sorting; and limit.
+     *
+     * @param string $search   The search term (empty = no filter)
+     * @param string $sortKey  One of: product_id, brand, retailer, availability, price
+     * @param string $order    ASC or DESC
+     * @param int    $limit    Max rows to return
+     * @return array           List of products as associative arrays
+     */
     public function getAllProducts(
         string $search   = '',
         string $sortKey  = 'product_id',
         string $order    = 'ASC',
-        int    $limit    = 30
+        int    $limit    = 20
     ): array {
         // 1) Whitelist & map sort keys
         $sortMap = [
@@ -74,4 +85,3 @@ class Product {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-?>
