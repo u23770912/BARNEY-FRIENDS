@@ -70,8 +70,14 @@
     console.log('API Response:', data);
 
     if (data.status === 'success' && data.data?.apikey) {
+
+      const user = {
+        id:data.data.userid,
+        name: data.data.name,
+        apikey: data.data.apikey
+      };
      
-      localStorage.setItem('apiKey', data.data.apikey);
+      localStorage.setItem('user', JSON.stringify(user));
 
       refreshAuth();
 
