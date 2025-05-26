@@ -45,7 +45,7 @@ class Product {
             p.availability,
             p.retailer_id,
             pr.price,
-            b.name    AS brand_name,
+            b.brand_name    AS brand_name,
             r.name    AS retailer_name
           FROM product p
           LEFT JOIN (
@@ -53,7 +53,7 @@ class Product {
             FROM price pr
             GROUP BY product_id
           ) pr ON pr.product_id = p.product_id
-          LEFT JOIN brand   b ON b.brand_id    = p.brand_id
+          LEFT JOIN brand b ON b.brand_id    = p.brand_id
           LEFT JOIN retailer r ON r.retailer_id = p.retailer_id
         ";
 
