@@ -5,66 +5,73 @@ class Product {
     public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
-    public function getProducts($search = [], $sort = 'id', $order = 'ASC', $limit = 10, $returnFields = ['*'], $fuzzy = true) {
-        // If wildcard is provided, select all fields.
-        if (in_array('*', $returnFields)) {
-            $fields = '*';
-        } else {
-            $fields = implode(", ", $returnFields);
+    public function getAllProducts(
+        string $search   = '',
+        string $sortKey  = 'product_id',
+        string $order    = 'ASC',
+        int    $limit    = 30
+    ): array {
+        // 1) Whitelist & map sort keys
+        $sortMap = [
+          'product_id'   => 'p.product_id',
+          'brand'        => 'b.name',
+          'retailer'     => 'r.name',
+          'availability' => 'p.availability',
+          'price'        => 'pr.price'
+        ];
+        if (! isset($sortMap[$sortKey])) {
+            throw new InvalidArgumentException("Invalid sort field: $sortKey");
         }
+        $sortExpr = $sortMap[$sortKey];
+        $order    = (strtoupper($order) === 'DESC') ? 'DESC' : 'ASC';
 
-        $sql = "SELECT $fields FROM product";
+        // 2) Build base SQL with joins
+        $sql = "
+          SELECT
+            p.product_id,
+            p.brand_id,
+            p.description,
+            p.availability,
+            p.retailer_id,
+            pr.price,
+            b.name    AS brand_name,
+            r.name    AS retailer_name
+          FROM product p
+          LEFT JOIN (
+            SELECT product_id, MIN(price) AS price
+            FROM price
+            GROUP BY product_id
+          ) pr ON pr.product_id = p.product_id
+          LEFT JOIN brand   b ON b.brand_id    = p.brand_id
+          LEFT JOIN retailer r ON r.retailer_id = p.retailer_id
+        ";
 
-        $conditions = [];
         $params = [];
-        foreach ($search as $column => $value) {
-            if ($fuzzy) {
-                $conditions[] = "$column LIKE :$column";
-                $params[":$column"] = "%" . $value . "%";
-            } else {
-                $conditions[] = "$column = :$column";
-                $params[":$column"] = $value;
-            }
+        // 3) Add fuzzy search if provided
+        if ($search !== '') {
+            $sql .= "
+              WHERE (
+                p.description LIKE :search
+                OR b.name       LIKE :search
+                OR r.name       LIKE :search
+              )
+            ";
+            $params[':search'] = "%{$search}%";
         }
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
+
+        // 4) Append ORDER BY and LIMIT
+        $sql .= " ORDER BY {$sortExpr} {$order} LIMIT :limit";
+
+        // 5) Prepare, bind, execute
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_STR);
         }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
 
-        
-        $sql .= " ORDER BY $sort $order LIMIT :limit";
-
-        try {
-            $stmt = $this->conn->prepare($sql);
-
-            foreach ($params as $placeholder => $value) {
-                $stmt->bindValue($placeholder, $value);
-            }
-            $stmt->bindValue(":limit", (int)$limit, PDO::PARAM_INT);
-
-            $stmt->execute();
-
-            $products = [];
-
-            if ($fields === '*') {
-                $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } else {
-                $boundColumns = [];
-                foreach ($returnFields as $field) {
-                    $boundColumns[$field] = null;
-                    $stmt->bindColumn($field, $boundColumns[$field]);
-                }
-                while ($stmt->fetch(PDO::FETCH_BOUND)) {
-                    $row = [];
-                    foreach ($boundColumns as $field => $value) {
-                        $row[$field] = $value;
-                    }
-                    $products[] = $row;
-                }
-            }
-            return $products;
-        } catch (PDOException $e) {
-            die("Database error: " . $e->getMessage());
-        }
+        // 6) Fetch all products
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
