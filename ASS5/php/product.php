@@ -63,8 +63,8 @@ class Product {
             $sql .= "
               WHERE (
                 p.description LIKE :search
-                OR b.name       LIKE :search
-                OR r.name       LIKE :search
+                OR b.brand_name       LIKE :search
+                OR r.retailer_name    LIKE :search
               )
             ";
             $params[':search'] = "%{$search}%";
