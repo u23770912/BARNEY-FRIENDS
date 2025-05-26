@@ -201,6 +201,50 @@
                 </svg>
                 Add Review
               </button>
+              <transition name="fade">
+                  <div
+                    v-if="showReviewModal"
+                    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                  >
+                    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                      <h3 class="text-lg font-semibold mb-4">Write a Review</h3>
+                      
+                      <label class="block mb-2">Rating</label>
+                      <div class="flex space-x-1 mb-4">
+                        <span
+                          v-for="n in 5"
+                          :key="n"
+                          @click="reviewForm.rating = n"
+                          class="cursor-pointer text-2xl select-none"
+                          :class="n <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'"
+                        >
+                          ★
+                        </span>
+                      </div>
+                                            
+                      <label class="block mb-2">Your Review</label>
+                      <textarea
+                        v-model="reviewForm.text"
+                        rows="4"
+                        class="w-full border rounded px-3 py-2 mb-4"
+                      ></textarea>
+                      
+                      <div class="flex justify-end gap-3">
+                        <button @click="closeReviewModal" class="px-4 py-2 bg-gray-300 rounded">
+                          Cancel
+                        </button>
+                        <button                               
+                          @click="submitReview"
+                          :disabled="reviewSubmitting"
+                          class="px-4 py-2 bg-blue-600 text-white rounded"
+                        >
+                          {{ reviewSubmitting ? 'Submitting…' : 'Submit' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </transition>
+
               <div v-if="reviews.length > 0" class="text-sm text-gray-600">
                 {{ reviews.length }} review{{ reviews.length !== 1 ? 's' : '' }}
               </div>
@@ -214,7 +258,7 @@
 
           <!-- No reviews state -->
           <div v-else-if="reviews.length === 0" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-            <p class="text-lg mb-2">No reviews yet</p>
+            <p class="text-lg mb-2">No reviews yet </p>
             <p class="text-sm">Be the first to review this product!</p>
           </div>
 
@@ -320,6 +364,15 @@
   const reviewsLoading = ref(false);
   const pricesLoading = ref(false);
   const isWishlisted = ref(false);
+
+  const showReviewModal  = ref(false)
+  const reviewForm       = ref({ rating: 5, text: '' })
+  const reviewSubmitting = ref(false)
+
+  function closeReviewModal() {
+    reviewForm.value = { rating: 5, text: '' }
+    showReviewModal.value = false
+  }
 
   // Computed property to get the main product image
   const productImage = computed(() => {
@@ -479,6 +532,38 @@ async function checkWishlistStatus() {
     console.error('Error checking wishlist status:', err.message);
   }
 }
+
+  async function submitReview() {
+    if (!isLoggedIn.value) {
+      alert('Please log in first')
+      return
+    }
+
+    reviewSubmitting.value = true
+    try {
+      const result = await useApi({
+        type:       'CreateReview',
+        product_id: id.toString(),
+        user_id:    user.value.id,
+        apikey:     apiKey.value,
+        rating:     reviewForm.value.rating.toString(),
+        text:       reviewForm.value.text
+      })
+
+      if (result.status === 'success') {
+        closeReviewModal()
+        await fetchReviews()
+        alert('Review submitted successfully!')
+      } else {
+        alert('Error: ' + (result.message || 'Unknown'))
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Failed to submit review')
+    } finally {
+      reviewSubmitting.value = false
+    }
+  }
 
   onMounted(async () => {
     await fetchProduct();
