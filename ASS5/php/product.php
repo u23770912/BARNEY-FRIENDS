@@ -20,7 +20,7 @@ class Product {
         string $search   = '',
         string $sortKey  = 'product_id',
         string $order    = 'ASC',
-        int    $limit    = 10
+        int    $limit    = 20
     ): array {
         // 1) Whitelist & map sort keys
         $sortMap = [
