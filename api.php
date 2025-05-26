@@ -359,7 +359,7 @@ else if ($input['type'] === 'GetAllProducts') {
         $search = trim($input['search'] ?? '');
         $sort   = $input['sort']  ?? 'product_id';
         $order  = $input['order'] ?? 'ASC';
-        $limit  = isset($input['limit']) ? (int)$input['limit'] : 10;
+        $limit  = isset($input['limit']) ? (int)$input['limit'] : 50;
 
         $svc = new Product($db);
         $list = $svc->getAllProducts($search, $sort, $order, $limit);
