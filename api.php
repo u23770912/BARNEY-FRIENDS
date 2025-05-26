@@ -591,10 +591,49 @@ else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","Up
 }
 
 else if ($input['type'] === 'GetRecommendations') {
-    $userId = $input['user_id'];
+  $userId = $input['user_id'];
   $rec = new Recommender($db);
   $list = $rec->recommendForUser($userId);
   echo json_encode(['status'=>'success','products'=>$list]);
+}
+
+else if ($input['type'] === 'LogClick') {
+    $productId = (int)($input['product_id'] ?? 0);
+    $apiKey    = $input['apikey']   ?? '';
+
+    if (!$productId || !$apiKey) {
+      http_response_code(400);
+      echo json_encode(['status'=>'error','message'=>'Missing product_id or api_key']);
+      exit;
+    }
+
+    // 1) Look up user by api_key
+    $u = $db->prepare("SELECT id FROM users WHERE api_key=:key LIMIT 1");
+    $u->execute([':key'=>$apiKey]);
+    if ($u->rowCount()===0) {
+      http_response_code(401);
+      echo json_encode(['status'=>'error','message'=>'Invalid API key']);
+      exit;
+    }
+    $userRow = $u->fetch(PDO::FETCH_ASSOC);
+
+    // 2) Look up the product (to get brand_id and price)
+    $p = $db->prepare("SELECT brand_id, (SELECT MIN(price) FROM price WHERE product_id=:pid) AS price
+                       FROM product
+                       WHERE product_id=:pid LIMIT 1");
+    $p->execute([':pid'=>$productId]);
+    if ($p->rowCount()===0) {
+      http_response_code(404);
+      echo json_encode(['status'=>'error','message'=>'Product not found']);
+      exit;
+    }
+    $prod = $p->fetch(PDO::FETCH_ASSOC);
+
+    // 3) Log the preference
+    $rec = new Recommender($db);
+    $rec->logUserPreference($userRow['id'], $prod['brand_id'], (float)$prod['price']);
+
+    echo json_encode(['status'=>'success','message'=>'Preference logged']);
 }
 
 else {
