@@ -46,7 +46,7 @@ class Product {
             p.retailer_id,
             pr.price,
             b.brand_name    AS brand_name,
-            r.name    AS retailer_name
+            r.retailer_name    AS retailer_name
           FROM product p
           LEFT JOIN (
             SELECT product_id, MIN(price) AS price
@@ -63,8 +63,8 @@ class Product {
             $sql .= "
               WHERE (
                 p.description LIKE :search
-                OR b.name       LIKE :search
-                OR r.name       LIKE :search
+                OR b.brand_name       LIKE :search
+                OR r.retailer_name    LIKE :search
               )
             ";
             $params[':search'] = "%{$search}%";
