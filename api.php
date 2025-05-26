@@ -10,6 +10,9 @@ header("Content-Type: application/json");
 require_once __DIR__ . '/ASS5/php/config.php';
 require_once __DIR__ . '/ASS5/php/user.php'; 
 require_once __DIR__ . '/ASS5/php/product.php';
+require_once __DIR__ . '/ASS5/php/user.php';
+require_once __DIR__ . '/ASS5/php/review.php';
+
 
 // Initialize database connection using PDO
 $database = Database::getInstance();
@@ -45,10 +48,14 @@ else if ($input['type'] === "Register") {
         $result = $user->register($name, $surname, $email, $password);
 
         if ($result['status'] === "success") {
-            echo json_encode([
+             echo json_encode([
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
-                "data" => ["apikey" => $result['apikey']]
+                "data" => [
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
+                ]
             ]);
         } else {
             http_response_code(400);
@@ -82,9 +89,9 @@ else if ($input['type'] === "Login") {
                 "status" => "success",
                 "timestamp" => round(microtime(true) * 1000),
                 "data" => [
-                    "apikey" => $result['apikey'],
-                    "userid" => $result['id'],
-                    "name"   => $result['name']
+                    "apikey" => $result['user']['apikey'],
+                    "userid" => $result['user']['id'],
+                    "name"   => $result['user']['name']
                 ]
             ]);
         } else {
@@ -257,7 +264,7 @@ else if ($input['type'] === 'GetWishlist') {
 
 else if ($input['type'] === 'GetProducts') {
     try {
-        // Get all products with their details
+        // Get basic product info
         $query = "
             SELECT 
                 p.product_id,
@@ -267,28 +274,13 @@ else if ($input['type'] === 'GetProducts') {
                 b.brand_name,
                 i.url_1 AS image_url_1,
                 i.url_2 AS image_url_2,
-                i.url_3 AS image_url_3,
-                GROUP_CONCAT(
-                    JSON_OBJECT(
-                        'price_id', pr.price_id,
-                        'retailer_id', pr.retailer_id,
-                        'retailer_name', r.retailer_name,
-                        'price', pr.price,
-                        'availability', pr.availability
-                    )
-                ) AS prices
+                i.url_3 AS image_url_3
             FROM 
-                products p
+                product p
             JOIN 
-                1234_brand b ON p.brand_id = b.brand_id
+                brand b ON p.brand_id = b.brand_id
             LEFT JOIN 
-                1234_image i ON p.product_id = i.product_id
-            LEFT JOIN 
-                1234_price pr ON p.product_id = pr.product_id
-            LEFT JOIN 
-                retailer r ON pr.retailer_id = r.retailer_id
-            GROUP BY 
-                p.product_id
+                image i ON p.product_id = i.product_id
             ORDER BY 
                 p.product_id
         ";
@@ -297,21 +289,46 @@ else if ($input['type'] === 'GetProducts') {
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Process the results to format prices as JSON arrays
-        $formattedProducts = array_map(function($product) {
-            // Convert the GROUP_CONCAT prices string to an array
-            $product['prices'] = $product['prices'] ? 
-                array_map('json_decode', explode(',', $product['prices'])) : 
-                [];
+        // Get all prices with retailer info
+        $priceQuery = "
+            SELECT 
+                pr.product_id,
+                pr.price_id,
+                pr.retailer_id,
+                r.retailer_name,
+                pr.price,
+                pr.availability
+            FROM 
+                price pr
+            JOIN 
+                retailer r ON pr.retailer_id = r.retailer_id
+        ";
+        $priceStmt = $db->prepare($priceQuery);
+        $priceStmt->execute();
+        $allPrices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organize prices by product_id
+        $pricesByProduct = [];
+        foreach ($allPrices as $price) {
+            $pricesByProduct[$price['product_id']][] = [
+                'price_id' => $price['price_id'],
+                'retailer_id' => $price['retailer_id'],
+                'retailer_name' => $price['retailer_name'],
+                'price' => (float)$price['price'],
+                'availability' => (int)$price['availability']
+            ];
+        }
+
+        // Combine products with their prices
+        $formattedProducts = array_map(function($product) use ($pricesByProduct) {
+            $product['prices'] = $pricesByProduct[$product['product_id']] ?? [];
             
-            // Create an array of non-null image URLs
             $product['images'] = array_filter([
                 $product['image_url_1'],
                 $product['image_url_2'],
                 $product['image_url_3']
             ]);
             
-            // Remove the individual image URL fields
             unset($product['image_url_1'], $product['image_url_2'], $product['image_url_3']);
             
             return $product;
@@ -472,18 +489,30 @@ else if ($input['type'] === "GetUserReview"){
 else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","UpdateReview","DeleteReview"], true))
 {
     // 1) Authenticate
-    $apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
-    $auth = new User($db);
-    if (!$auth->authenticateApiKey($apiKey)) {
-        http_response_code(401);
+    $userId = $input['user_id'] ?? null;
+    $apiKey = $input['apikey']  ?? '';
+    if (! $userId) {
+        http_response_code(422);
         echo json_encode([
             "status"  => "error",
-            "message" => "Unauthorized"
+            "message" => "user_id and apikey are required"
         ]);
         exit;
     }
-    $currentUserId = $auth->getUserId();
-    $svc = new Review($db, $currentUserId);
+
+    $authStmt = $db->prepare("SELECT id FROM users WHERE id = ? AND api_key = ?");
+    $authStmt->execute([$userId, $apiKey]);
+
+    if ($authStmt->rowCount() === 0) {
+        http_response_code(401);
+        echo json_encode([
+            "status"  => "error",
+            "message" => "Invalid API key or user ID"
+        ]);
+        exit;
+    }
+
+    $svc = new Review($db, (int)$userId);
 
     // 2) Dispatch
     switch ($input['type']) {
