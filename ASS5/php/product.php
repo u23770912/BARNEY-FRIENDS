@@ -50,7 +50,7 @@ class Product {
           FROM product p
           LEFT JOIN (
             SELECT product_id, MIN(price) AS price
-            FROM price
+            FROM price pr
             GROUP BY product_id
           ) pr ON pr.product_id = p.product_id
           LEFT JOIN brand   b ON b.brand_id    = p.brand_id
