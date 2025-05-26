@@ -54,4 +54,24 @@ class Recommender {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function logUserPreference(int $userId, int $brandId, float $price): void {
+        // Determine price bucket
+        if ($price < 1500)      $range = 'low';
+        elseif ($price < 2500) $range = 'mid';
+        else                  $range = 'high';
+
+        // Upsert into user_preferences
+        $sql = "
+          INSERT INTO user_preferences (user_id, brand_id, price_range, count)
+          VALUES (:uid, :bid, :range, 1)
+          ON DUPLICATE KEY UPDATE count = count + 1
+        ";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+          ':uid'   => $userId,
+          ':bid'   => $brandId,
+          ':range' => $range
+        ]);
+    }
 }
