@@ -1,8 +1,8 @@
 <?php
 class Product {
-    private PDO $conn;
+    private $conn;
 
-    public function __construct(PDO $dbConnection) {
+    public function __construct($dbConnection) {
         $this->conn = $dbConnection;
     }
 
