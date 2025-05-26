@@ -336,6 +336,57 @@ else if ($input['type'] === 'GetProducts') {
     exit;
 }
 
+else if ($input['type'] === 'GetAllProducts') {
+    try {
+        $search = trim($input['search'] ?? '');
+        $sort   = $input['sort']  ?? 'product_id';
+        $order  = strtoupper($input['order'] ?? 'ASC');
+        $limit  = isset($input['limit']) ? (int)$input['limit'] : 30;
+
+        $allowedSortFields = ['product_id','brand_id','availability','retailer_id'];
+        if (!in_array($sort, $allowedSortFields, true)) {
+            http_response_code(400);
+            echo json_encode(['status'=>'error','message'=>'Invalid sort field']);
+            exit;
+        }
+        $order = ($order === 'DESC') ? 'DESC' : 'ASC';
+
+        $searchArr = [];
+        if ($search !== '') {
+            $searchArr['description'] = $search;
+        }
+
+        // 4. Fetch products
+        $productService = new Product($db);
+        $products = $productService->getProducts(
+            $searchArr,  
+            $sort,         
+            $order,        
+            $limit,       
+            ['*'],         
+            true          
+        );
+
+        echo json_encode([
+            'status'   => 'success',
+            'products' => $products
+        ]);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status'  => 'error',
+            'message' => 'Database error: ' . $e->getMessage()
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status'  => 'error',
+            'message' => 'Server error: ' . $e->getMessage()
+        ]);
+    }
+}
+
 else if ($input['type'] === "GetProduct") {
     $product_id = $input["product_id"];
     $api_key    = $input["apikey"];
