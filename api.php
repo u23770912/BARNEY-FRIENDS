@@ -361,7 +361,7 @@ else if ($input['type'] === 'GetAllProducts') {
         $order   = $input['order'] ?? 'ASC';
 
         $productService = new Product($db);
-        $products = $productService->getAllProducts($search, $sort, $order, $limit);
+        $products = $productService->getAllProducts($search, $sort, $order);
 
         echo json_encode(['status'=>'success','products'=>$products]);
     } catch (InvalidArgumentException $e) {
