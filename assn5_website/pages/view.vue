@@ -162,9 +162,9 @@
         <div class="mt-8">
           <h2 class="text-xl font-semibold mb-3">Product Information</h2>
           <div class="bg-gray-50 p-4 rounded-lg">
-            <p><strong>Product Name:</strong> {{ product.description }}</p>
-            <p><strong>Brand Name:</strong> {{ product.brand_id }}</p>
-            <p><strong>Retailer ID:</strong> {{ product.retailer_id }}</p>
+            <p><strong>Description:</strong> {{ product.description }}</p>
+            <!-- <p><strong>Brand Name:</strong> {{ product.brand_id }}</p>
+            <p><strong>Retailer ID:</strong> {{ product.retailer_id }}</p> -->
           </div>
         </div>
 

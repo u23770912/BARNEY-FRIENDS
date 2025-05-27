@@ -18,12 +18,6 @@
             Featured Products
           </h2>
 
-<<<<<<< HEAD
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-        <ProductCard v-for="product in products" :key="product.product_id" :product="product" />
-      </div>
-    </section>
-=======
           <!-- Sort Dropdown -->
           <div class="inline-flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 shadow-sm bg-white">
             <label for="sort" class="text-sm font-medium">Sort by:</label>
@@ -40,7 +34,6 @@
             </select>
           </div>
         </div>
->>>>>>> a4f0881b12ac68059b05190fd6a9752031165bc4
 
         <!-- Loading / Empty States -->
         <div v-if="loading" class="text-center py-10 text-gray-700 text-lg">Loading products...</div>
@@ -48,19 +41,6 @@
           No products found.
         </div>
 
-<<<<<<< HEAD
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-12">
-        <ReviewCard v-for="(review, index) in reviews" :key="index" :name="review.name" :rating="review.rating"
-          :comment="review.comment" />
-      </div>
-
-      <!-- CTA to Dashboard -->
-      <div class="text-center">
-        <NuxtLink to="/dashboard">
-          <button
-            class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300">
-            View Dashboard Analytics
-=======
         <!-- Product Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
           <ProductCard
@@ -78,7 +58,6 @@
             class="hover:text-black transition disabled:opacity-30 disabled:cursor-not-allowed"
           >
             ← Previous
->>>>>>> a4f0881b12ac68059b05190fd6a9752031165bc4
           </button>
           <span class="text-gray-700 font-medium">
             Page {{ currentPage }} of {{ totalPages }}
@@ -118,11 +97,6 @@ const loadProducts = async () => {
   loading.value = false;
 };
 
-<<<<<<< HEAD
-loadProducts();
-
-
-=======
 // Filter by price
 const filteredProducts = computed(() => {
   if (!priceRange.value) return rawProducts.value;
@@ -140,6 +114,7 @@ const filteredProducts = computed(() => {
     return true;
   });
 });
+
 
 // Sort by brand or price
 const sortedProducts = computed(() => {
@@ -206,5 +181,4 @@ watch([sortOption, priceRange], () => {
   currentPage.value = 1;
 });
 
->>>>>>> a4f0881b12ac68059b05190fd6a9752031165bc4
 </script>
