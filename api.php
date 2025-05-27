@@ -415,7 +415,7 @@ else if ($input['type'] === "GetProduct") {
 
     // 3) Fetch all prices for that product
     $priceStmt = $db->prepare(
-    "SELECT *,
+    "SELECT *
             FROM price pr
             JOIN retailer r ON r.retailer_id = pr.retailer_id
             WHERE pr.product_id = :pid"
