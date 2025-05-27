@@ -1,5 +1,8 @@
 FrontEnd:
     u24580717: index page, header, top rated products page
+    u21549232:
+        Set up the dummy login and signin pages. Set up the view pages and the add review button
+        Did Parts of task3 with the ER mapping 
 Intergration:
     u23770912:
             Helped displaying products and sorting functionality
