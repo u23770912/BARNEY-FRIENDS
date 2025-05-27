@@ -595,7 +595,8 @@ else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","Up
 else if ($input['type'] === 'GetRecommendations') {
   //$userId = $input['user_id'];
   $rec = new Recommender($db);
-  $list = $rec->recommendForUser($userId);
+  $limit = 5;
+  $list = $rec->recommendForUser($userId,$limit);
   echo json_encode(['status'=>'success','products'=>$list]);
 }
 
