@@ -1,0 +1,14 @@
+user table schema
+
+CREATE TABLE users (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
+    surname VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    salt VARCHAR(64) NOT NULL,
+    api_key VARCHAR(64) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY (email),
+    UNIQUE KEY (api_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

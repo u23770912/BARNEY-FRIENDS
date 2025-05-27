@@ -1,0 +1,24 @@
+FrontEnd:
+    u24580717: index page, header, top rated products page
+Intergration:
+    u23770912:
+            Helped displaying products and sorting functionality
+
+BackEnd:
+    u23770912: 
+            GetAllProducts,GetProducts,Register,Login,GetReviews,GetRecommendation,Logclick
+            Config.php
+            Task7.pdf
+            Git Workflow(Intergratin from git to wheatley)
+
+    u23537036:
+            AddToWishlist,RemoveFromWishlist,GetWishlist,GetProducts
+            Contributed to creation and population of database
+            Contributed to ERD
+    u23976072:
+            Revie Class,GetByProduct,GetByUser,UpdateReview,DeleteReview
+            ReadMe, EER diagram
+
+
+
+
