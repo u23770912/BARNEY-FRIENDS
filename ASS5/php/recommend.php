@@ -13,9 +13,11 @@ class Recommend {
             FROM user_preferences
            WHERE user_id = :uid
         ORDER BY count DESC
-           LIMIT = :limit
+           LIMIT :limit
         ");
-        $prefStmt->execute([':uid'=>$userId,':limit'=>$limit]);
+        $prefStmt->bindValue(':uid',   $userId, PDO::PARAM_INT);
+        $prefStmt->bindValue(':limit', $limit,  PDO::PARAM_INT);
+        $prefStmt->execute();
         $prefs = $prefStmt->fetchAll(PDO::FETCH_ASSOC);
         if (empty($prefs)) {
             return []; // no history yet
