@@ -50,6 +50,10 @@
           />
         </div>
 
+          <div>
+            <RecommendedProducts />
+          </div>
+
         <!-- Pagination Controls -->
         <div class="flex justify-center items-center mt-12 space-x-6 text-sm text-gray-600">
           <button
@@ -81,6 +85,8 @@
 import { ref, watch, computed, onMounted } from 'vue';
 import ProductCard from '~/components/productcard.vue';
 import { useProducts } from '~/composables/useProducts';
+import RecommendedProducts from '@/components/RecommendedProducts.vue'
+
 
 const loading = ref(true);
 const rawProducts = ref([]);
