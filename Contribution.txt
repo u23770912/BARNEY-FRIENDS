@@ -1,5 +1,5 @@
 FrontEnd:
-
+    u24580717: index page, header, top rated products page
 Intergration:
     u23770912:
             Helped displaying products and sorting functionality
