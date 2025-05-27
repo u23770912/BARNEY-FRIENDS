@@ -1,0 +1,17 @@
+FrontEnd:
+
+Intergration:
+    u23770912:
+            Helped displaying products and sorting functionality
+
+BackEnd:
+    u23770912: 
+            GetAllProducts,GetProducts,Register,Login,GetReviews,GetRecommendation,Logclick
+            Config.php
+            Task7.pdf
+            Git Workflow(Intergratin from git to wheatley)
+
+
+
+
+
