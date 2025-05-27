@@ -11,6 +11,11 @@ BackEnd:
             Task7.pdf
             Git Workflow(Intergratin from git to wheatley)
 
+    u23537036:
+            AddToWishlist,RemoveFromWishlist,GetWishlist,GetProducts
+            Contributed to creation and population of database
+            Contributed to ERD
+
 
 
 
