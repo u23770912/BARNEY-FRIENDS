@@ -1,5 +1,5 @@
 <?php
-class Recommender {
+class Recommend {
    private $conn;
 
     public function __construct($dbConnection) {
