@@ -21,7 +21,8 @@ BackEnd:
     u23976072:
             Revie Class,GetByProduct,GetByUser,UpdateReview,DeleteReview
             ReadMe, EER diagram
-
+            Contributed to creation and population of database
+            Contributed to ERD
 
 
 
