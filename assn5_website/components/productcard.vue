@@ -2,22 +2,26 @@
   <div class="product-card">
     <NuxtLink :to="`/view?id=${product.product_id}`" class="block bg-white border border-gray-200 rounded-2xl shadow hover:shadow-lg transition p-4 w-full max-w-xs cursor-pointer">
       <!-- Product Image -->
-      <img :src="product.images[0]" alt="Product Image" class="w-full h-60 object-cover rounded-xl mb-4" />
+      <img
+        :src="(product.images && product.images.length > 0) ? product.images[0].url_1 : '/default-image.jpg'"
+        alt="Product Image"
+        class="w-full h-60 object-cover rounded-xl mb-4"
+      />
 
-      <!-- Product Name -->
-      <div class="text-black font-bold text-lg mb-1">{{ product.description }}</div>
+      <!-- Padded content for alignment -->
+      <div class="px-3">
+        <!-- Product Name -->
+        <div class="text-black font-bold text-lg mb-1">{{ product.description }}</div>
 
-      <!-- Brand -->
-      <div class="text-sm text-gray-500 mb-2">by {{ product.brand_name }}</div>
+        <!-- Brand -->
+        <div class="text-sm text-black-500 mb-2">{{ product.brand_name }}</div>
 
-      <!-- Prices -->
-      <div v-if="lowestPrice" class="flex items-center space-x-2 mb-3">
-        <span class="text-gray-500 line-through text-sm">
-          R{{ originalPrice }}
-        </span>
-        <span class="text-green-600 font-semibold">
-          R{{ lowestPrice }}
-        </span>
+        <!-- Prices -->
+        <div v-if="lowestPrice" class="flex items-center space-x-2 mb-3">
+          <span class="text-green-600 font-semibold">
+            R{{ lowestPrice }}
+          </span>
+        </div>
       </div>
 
       <!-- Retailers -->
@@ -37,6 +41,7 @@
     </NuxtLink>
   </div>
 </template>
+
 
 <script setup>
 import { defineProps, computed } from 'vue';

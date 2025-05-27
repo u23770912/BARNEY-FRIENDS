@@ -3,7 +3,6 @@
     <div class="login-card">
       <h2 class="card-title">Sign&nbsp;in to <span class="brand">CompareIT</span></h2>
 
-      <!-- Dummy page – replace onSubmit when backend is ready -->
       <form class="login-form" @submit.prevent="onSubmit">
         <div class="form-field">
           <label for="email">Email</label>
@@ -16,16 +15,28 @@
           />
         </div>
 
-        <div class="form-field">
-          <label for="password">Password</label>
+        <div class="form-field relative">
+          <label for="password" class="block mb-1 font-medium text-gray-700">Password</label>
           <input
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             id="password"
             v-model="password"
             placeholder="••••••••"
             required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm pr-10 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
           />
+
+          <!-- Show/hide button inside input -->
+          <button
+            type="button"
+            @click="showPassword = !showPassword"
+            class="absolute right-3 top-[38px] text-sm text-gray-500 hover:text-gray-800 focus:outline-none"
+            aria-label="Toggle password visibility"
+          >
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
         </div>
+
 
         <button type="submit" class="btn-submit">Login</button>
         
@@ -53,6 +64,7 @@
   const error = ref('');
   const success = ref('');
   const router = useRouter();
+  const showPassword = ref(false);
 
   const { isLoggedIn , refreshAuth } = useAuth();
 
@@ -86,10 +98,16 @@
         router.push('/');
       }, 1000);
     } else {
-      error.value = data.message || 'Login failed';
+      error.value = 'Incorrect email or password';
     }
 
   } catch (err) {
+    if(err?.response?.data?.message){
+      error.value = err.response.data.message;
+    }
+    else if(err?.message){
+      error.value = err.message;
+    }
     error.value = 'Network error. Please try again.';
   }
 }
@@ -194,6 +212,7 @@
   margin-top: 0.5rem;
   color: #e63946;
   font-size: 0.9rem;
+  text-align: center
 }
 
 .success {
@@ -202,4 +221,5 @@
   font-size: 0.9rem;
   text-align: center;
 }
+
 </style>
