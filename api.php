@@ -604,7 +604,7 @@ else if ($input['type'] === 'LogClick') {
     $productId = (int)($input['product_id'] ?? 0);
     $apikey    = $input['apikey']   ?? '';
 
-    if (!$productId || !$apiKey) {
+    if (!$productId || !$apikey) {
       http_response_code(400);
       echo json_encode(['status'=>'error','message'=>'Missing product_id or api_key']);
       exit;
@@ -612,7 +612,7 @@ else if ($input['type'] === 'LogClick') {
 
     // 1) Look up user by api_key
     $u = $db->prepare("SELECT id FROM users WHERE api_key=:key LIMIT 1");
-    $u->execute([':key'=>$apiKey]);
+    $u->execute([':key'=>$apikey]);
     if ($u->rowCount()===0) {
       http_response_code(401);
       echo json_encode(['status'=>'error','message'=>'Invalid API key']);
@@ -633,7 +633,7 @@ else if ($input['type'] === 'LogClick') {
     $prod = $p->fetch(PDO::FETCH_ASSOC);
 
     // 3) Log the preference
-    $rec = new Recommender($db);
+    $rec = new Recommend($db);
     $rec->logUserPreference($userRow['id'], $prod['brand_id'], (float)$prod['price']);
 
     echo json_encode(['status'=>'success','message'=>'Preference logged']);
