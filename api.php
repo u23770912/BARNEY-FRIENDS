@@ -415,10 +415,11 @@ else if ($input['type'] === "GetProduct") {
 
     // 3) Fetch all prices for that product
     $priceStmt = $db->prepare(
-      "SELECT *
-       FROM price
-       WHERE product_id = :pid"
-    );
+    "SELECT pr.*, r.retailer_name,
+            FROM price pr
+            JOIN retailer r ON r.retailer_id = pr.retailer_id
+            WHERE pr.product_id = :pid"
+            );
     $priceStmt->execute([':pid' => $product_id]);
     $prices = $priceStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -427,7 +428,8 @@ else if ($input['type'] === "GetProduct") {
         'status'   => 'success',
         'product'  => $product,
         'images'   => $images,
-        'prices'   => $prices
+        'prices'   => $prices,
+
     ]);
 }
 
