@@ -1,9 +1,9 @@
 <template>
-  <div class="bg-white text-black">
+  <main class="bg-white text-black">
     <!-- Hero Section -->
     <section class="bg-black text-white py-16 px-6 text-center rounded-b-3xl shadow-lg">
       <h1 class="text-4xl md:text-5xl font-bold mb-4">Compare Clothing Prices Effortlessly</h1>
-      <p class="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
+      <p class="text-lg md:text-xl text-gray-100 max-w-2xl mx-auto">
         Discover the best deals across top fashion stores. Stylish. Smart. Affordable.
       </p>
     </section>
@@ -20,7 +20,7 @@
 
           <!-- Sort Dropdown -->
           <div class="inline-flex items-center space-x-2 border border-gray-300 rounded-lg px-4 py-2 shadow-sm bg-white">
-            <label for="sort" class="text-sm font-medium text-gray-700">Sort by:</label>
+            <label for="sort" class="text-sm font-medium">Sort by:</label>
             <select
               id="sort"
               v-model="sortOption"
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Loading / Empty States -->
-        <div v-if="loading" class="text-center py-10 text-gray-500 text-lg">Loading products...</div>
+        <div v-if="loading" class="text-center py-10 text-gray-700 text-lg">Loading products...</div>
         <div v-else-if="paginatedProducts.length === 0" class="text-center py-10 text-gray-500 text-lg">
           No products found.
         </div>
@@ -73,7 +73,7 @@
 
       </div>
     </section>
-  </div>
+  </main>
 </template>
 
 
