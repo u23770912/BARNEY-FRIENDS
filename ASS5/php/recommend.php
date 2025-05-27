@@ -6,16 +6,16 @@ class Recommend {
         $this->conn = $dbConnection;
     }
 
-    public function recommendForUser(int $userId, int $limit = 5): array {
+    public function recommendForUser(int $userId, int $limit): array {
         // 1) Get top 3 preferences
         $prefStmt = $this->conn->prepare("
           SELECT brand_id, price_range
             FROM user_preferences
            WHERE user_id = :uid
         ORDER BY count DESC
-           LIMIT 3
+           LIMIT = :limit
         ");
-        $prefStmt->execute([':uid'=>$userId]);
+        $prefStmt->execute([':uid'=>$userId,':limit'=>$limit]);
         $prefs = $prefStmt->fetchAll(PDO::FETCH_ASSOC);
         if (empty($prefs)) {
             return []; // no history yet
@@ -27,8 +27,8 @@ class Recommend {
         foreach ($prefs as $i => $p) {
             $where[] = "(p.brand_id = :bid{$i} AND
                          CASE
-                           WHEN p.price < 50  THEN 'low'
-                           WHEN p.price < 150 THEN 'mid'
+                           WHEN p.price < 1500  THEN 'low'
+                           WHEN p.price < 2500 THEN 'mid'
                            ELSE 'high'
                          END = :range{$i})";
             $params[":bid{$i}"]   = $p['brand_id'];
