@@ -95,9 +95,10 @@
                     R{{ formatPrice(price.price) }}
                   </span>
                   <div v-if="index > 0 && sortedPrices.length > 1" class="text-sm text-gray-500">
-                    <span class="bg-gray-100 px-2 py-1 rounded">
+                    <!-- commented the following out because it makes the code messy  -->
+                    <!-- <span class="bg-gray-100 px-2 py-1 rounded">
                       +R{{ (price.price - sortedPrices[0].price).toFixed(2) }} more
-                    </span>
+                    </span> --> 
                   </div>
                 </div>
               </div>
