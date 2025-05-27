@@ -73,43 +73,13 @@
 
       </div>
     </section>
-
-
-
-    <!-- Reviews Section -->
-    <section class="bg-gray-50 px-6 md:px-16 py-16 rounded-t-3xl">
-      <h2 class="text-2xl font-bold mb-8 border-l-4 border-green-500 pl-4">
-        Customer Reviews
-      </h2>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-12">
-        <ReviewCard
-          v-for="(review, index) in reviews"
-          :key="index"
-          :name="review.name"
-          :rating="review.rating"
-          :comment="review.comment"
-        />
-      </div>
-
-      <div class="text-center">
-        <NuxtLink to="/dashboard">
-          <button
-            class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300"
-          >
-            View Dashboard Analytics
-          </button>
-        </NuxtLink>
-      </div>
-    </section>
   </div>
 </template>
 
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import ProductCard from '~/components/productcard.vue';
-import ReviewCard from '~/components/reviewcard.vue';
 import { useProducts } from '~/composables/useProducts';
 
 const loading = ref(true);
@@ -123,7 +93,7 @@ const itemsPerPage = 8;
 // Fetch once
 const loadProducts = async () => {
   loading.value = true;
-  rawProducts.value = await useProducts(); // No sort/order needed
+  rawProducts.value = await useProducts();
   loading.value = false;
 };
 
@@ -201,7 +171,6 @@ const prevPage = () => {
   }
 };
 
-// Reload products on mount
 onMounted(() => {
   loadProducts();
 });

@@ -28,8 +28,11 @@ const props = defineProps({
 })
 
 const shortComment = computed(() =>
-  props.comment.length > 100 ? props.comment.slice(0, 100) + '...' : props.comment
+  props.comment && props.comment.length > 100
+    ? props.comment.slice(0, 100) + '...'
+    : props.comment || ''
 )
+
 </script>
 
 <style>
