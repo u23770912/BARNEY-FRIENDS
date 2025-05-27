@@ -10,9 +10,9 @@ class Recommend {
         // 1) Get top preferences
         $prefStmt = $this->conn->prepare("
           SELECT brand_id, price_range
-            FROM user_preferences
+          FROM user_preferences
           WHERE user_id = :uid
-        ORDER BY count DESC
+          ORDER BY count DESC
           LIMIT :limit
         ");
         $prefStmt->bindValue(':uid',   $userId, PDO::PARAM_INT);
@@ -30,8 +30,8 @@ class Recommend {
         foreach ($prefs as $i => $p) {
             $where[] = "(p.brand_id = :bid{$i} AND
                         CASE
-                          WHEN p.price < 50  THEN 'low'
-                          WHEN p.price < 150 THEN 'mid'
+                          WHEN p.price < 1500  THEN 'low'
+                          WHEN p.price < 2500 THEN 'mid'
                           ELSE 'high'
                         END = :range{$i})";
             $params[":bid{$i}"]   = $p['brand_id'];
@@ -42,11 +42,16 @@ class Recommend {
         // 3) Final recommendation SQL
         $sql = "
           SELECT p.*, AVG(r.rating) AS avg_rating
-            FROM product p
-      LEFT JOIN reviews r ON r.product_id = p.product_id
+          FROM product p
+          LEFT JOIN (
+                    SELECT product_id, MIN(price) AS price
+                    FROM price
+                    GROUP BY product_id
+                  ) pr ON pr.product_id = p.product_id
+          LEFT JOIN reviews r ON r.product_id = p.product_id
           WHERE {$whereSql}
-        GROUP BY p.product_id
-        ORDER BY avg_rating DESC
+          GROUP BY p.product_id
+          ORDER BY avg_rating DESC
           LIMIT :lim
         ";
 
