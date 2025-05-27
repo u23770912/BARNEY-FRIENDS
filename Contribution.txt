@@ -15,7 +15,9 @@ BackEnd:
             AddToWishlist,RemoveFromWishlist,GetWishlist,GetProducts
             Contributed to creation and population of database
             Contributed to ERD
-
+    u23976072:
+            Revie Class,GetByProduct,GetByUser,UpdateReview,DeleteReview
+            ReadMe, EER diagram
 
 
 
