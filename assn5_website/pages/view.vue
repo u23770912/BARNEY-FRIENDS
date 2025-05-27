@@ -50,15 +50,17 @@
             </div>
           </div>
 
-           <!-- No prices state -->
+          <!-- No prices state -->
           <div v-else-if="prices.length === 0" class="bg-yellow-50 border border-yellow-200 p-6 rounded-xl text-center">
             <div class="flex items-center justify-center gap-3 mb-3">
               <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
               <h3 class="text-lg font-semibold text-yellow-800">Price Information Unavailable</h3>
             </div>
-            <p class="text-yellow-700">We're currently unable to fetch pricing from our partner stores. Please check back later.</p>
+            <p class="text-yellow-700">We're currently unable to fetch pricing from our partner stores. Please check
+              back later.</p>
           </div>
 
           <!-- Prices table -->
@@ -89,8 +91,7 @@
               <!-- Price Display -->
               <div class="px-4 py-4 flex items-center">
                 <div class="flex items-baseline gap-2">
-                  <span :class="index === 0 ? 'text-green-600' : 'text-gray-900'" 
-                        class="text-2xl font-bold">
+                  <span :class="index === 0 ? 'text-green-600' : 'text-gray-900'" class="text-2xl font-bold">
                     R{{ formatPrice(price.price) }}
                   </span>
                   <div v-if="index > 0 && sortedPrices.length > 1" class="text-sm text-gray-500">
@@ -118,23 +119,22 @@
               </div>
 
               <!-- Action button -->
-              <!-- <div class="px-4 py-4 flex items-center">
-                <a :href="getStoreLink(price.retailer_name, price.retailer_id)" target="_blank"
-                  rel="noopener noreferrer" :class="[
-                    'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all',
-                    price.availability > 0
-                      ? index === 0
-                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  ]" :aria-disabled="price.availability <= 0">
+              <div class="px-4 py-4 flex items-center">
+                <a :href="price.store_url" target="_blank" rel="noopener noreferrer" :class="[
+                  'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all',
+                  price.availability > 0
+                    ? index === 0
+                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ]" :aria-disabled="price.availability <= 0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                   {{ price.availability > 0 ? 'View at Store' : 'Unavailable' }}
                 </a>
-              </div> -->
+              </div>
             </div>
           </div>
 
@@ -631,5 +631,3 @@ onMounted(async () => {
 
 /* adding a comment to push */
 </style>
-
-
