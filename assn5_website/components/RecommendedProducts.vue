@@ -7,15 +7,13 @@
     <div v-else-if="products.length === 0" class="text-gray-500">No recommendations available.</div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      <NuxtLink to:="view"
+      <NuxtLink
         v-for="product in products"
         :key="product.product_id"
-        :to="`/view?product_id=${product.product_id}`"
+        :to="`/view?id=${product.product_id}`"
         class="block border rounded-xl p-4 shadow hover:shadow-lg transition"
       >
         <h3 class="font-semibold text-lg mb-2">{{ product.description }}</h3>
-        <p><strong>Brand:</strong> {{ product.brand_id }}</p>
-        <p><strong>Retailer:</strong> {{ product.retailer_id }}</p>
         <p>
           <strong>Avg Rating:</strong>
           <span v-if="product.avg_rating">{{ parseFloat(product.avg_rating).toFixed(1) }}</span>
@@ -31,12 +29,20 @@ import { ref, onMounted } from 'vue';
 import { useRecommendations } from '~/composables/useRecommendations';
 
 const products = ref([]);
+const loading = ref(true);
+const error = ref('');
 
 onMounted(async () => {
-  products.value = await useRecommendations();
+  try {
+    products.value = await useRecommendations();
+  } catch (err) {
+    error.value = 'Failed to load recommendations.';
+    console.error(err);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
-
 
 <style scoped>
 .recommended-products {
