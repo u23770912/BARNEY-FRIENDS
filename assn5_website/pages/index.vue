@@ -18,11 +18,7 @@
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-        <ProductCard
-          v-for="product in products"
-          :key="product.product_id"
-          :product="product"
-        />
+        <ProductCard v-for="product in products" :key="product.product_id" :product="product" />
       </div>
     </section>
 
@@ -31,19 +27,15 @@
       <h2 class="text-2xl font-bold mb-8 border-l-4 border-green-500 pl-4">Customer Reviews</h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-12">
-        <ReviewCard
-          v-for="(review, index) in reviews"
-          :key="index"
-          :name="review.name"
-          :rating="review.rating"
-          :comment="review.comment"
-        />
+        <ReviewCard v-for="(review, index) in reviews" :key="index" :name="review.name" :rating="review.rating"
+          :comment="review.comment" />
       </div>
 
       <!-- CTA to Dashboard -->
       <div class="text-center">
         <NuxtLink to="/dashboard">
-          <button class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300">
+          <button
+            class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-full shadow-lg transition duration-300">
             View Dashboard Analytics
           </button>
         </NuxtLink>
@@ -84,4 +76,6 @@ const loadProducts = async () => {
 };
 
 loadProducts();
+
+
 </script>
