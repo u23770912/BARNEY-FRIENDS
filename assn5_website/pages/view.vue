@@ -628,4 +628,8 @@ onMounted(async () => {
 .product-view table td {
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+/* adding a comment to push */
 </style>
+
+
