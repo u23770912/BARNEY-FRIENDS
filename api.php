@@ -594,15 +594,15 @@ else if (in_array($input['type'], ["CreateReview","GetByProduct","GetByUser","Up
 
 else if ($input['type'] === 'GetRecommendations') {
   $userId = $input['user_id'];
-  $rec = new Recommender($db);
-  $limit = 5;
+  $rec = new Recommend($db);
+  $limit = $input['limit'];
   $list = $rec->recommendForUser($userId,$limit);
   echo json_encode(['status'=>'success','products'=>$list]);
 }
 
 else if ($input['type'] === 'LogClick') {
     $productId = (int)($input['product_id'] ?? 0);
-    $apiKey    = $input['apikey']   ?? '';
+    $apikey    = $input['apikey']   ?? '';
 
     if (!$productId || !$apiKey) {
       http_response_code(400);
